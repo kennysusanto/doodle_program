@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'globals.dart' as globals;
 import 'routes.dart';
+import 'dart:math';
 
 class DoodleHandler extends StatefulWidget {
   const DoodleHandler({Key? key}) : super(key: key);
@@ -76,23 +77,22 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       } catch (e) {
         print('Error: $e');
       }
-      // Stream<String> lines = _keywordsFile
-      //     .openRead()
-      //     .transform(utf8.decoder) // Decode bytes to UTF-8.
-      //     .transform(LineSplitter()); // Convert stream to individual lines.
-      // try {
-      //   await for (var line in lines) {
-      //     // print('$line: ${line.length} characters');
-      //     keywords.add(line);
-      //   }
-      //   print('File is now closed.');
-      // } catch (e) {
-      //   print('Error: $e');
-      // }
+
+      // select random keywords for n rounds
+      var rng = new Random();
+      Set<int> rnglist = {};
+      for (var i = 0; i < numOfRounds; i++) {
+        rnglist.add(rng.nextInt(labels2
+            .length)); // still using the trained keywords, not full keywords
+      }
+
+      rnglist.forEach((element) {
+        print(labels2[element]);
+      });
 
       for (int i = 0; i < numOfRounds; i++) {
-        final res = await Navigator.of(context).push(DoodlePageRoute(
-            keywordsa: keywords, labelsa: labels, labels2a: labels2));
+        final res = await Navigator.of(context)
+            .push(DoodlePageRoute(keyword: labels2[rnglist.toList()[i]]));
         print(res);
         if (res == null) {
           break;
@@ -104,6 +104,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         }
       }
       print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
+
       Navigator.of(context).pop();
     });
   }

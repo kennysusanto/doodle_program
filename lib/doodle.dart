@@ -1,19 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:core';
 import 'sketcher.dart';
 import 'globals.dart' as globals;
+import 'package:tflite/tflite.dart';
 
 class DoodlePage extends StatefulWidget {
-  final List keywords;
-  final List labels;
-  final List labels2;
-  const DoodlePage(
-      {Key? key,
-      required this.keywords,
-      required this.labels,
-      required this.labels2})
-      : super(key: key);
+  final String keyword;
+  const DoodlePage({
+    Key? key,
+    required this.keyword,
+  }) : super(key: key);
 
   @override
   _DoodlePageState createState() => _DoodlePageState();
@@ -23,6 +22,48 @@ class _DoodlePageState extends State<DoodlePage> {
   List strokes = [];
   List stroke = [];
   int c = 0;
+  late List _outputs;
+  late File _image;
+  final imSize = 200;
+  final imPadding = 40;
+  GlobalKey containerKey = GlobalKey();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    // load tflite model
+
+    super.initState();
+
+    loadModel();
+    setState(() {});
+  }
+
+  pickImage() async {
+    // var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    // if (image == null) return null;
+    // setState(() {
+    //   _image = image;
+    // });
+    // classifyImage(image);
+  }
+
+  classifyImage(File image) async {
+    var output = await Tflite.runModelOnImage(
+      path: image.path,
+    );
+    print("predict = " + output.toString());
+    setState(() {
+      _outputs = output!;
+    });
+  }
+
+  loadModel() async {
+    await Tflite.loadModel(
+      model: "assets/my_tflite_model.tflite",
+      labels: "assets/labels.txt",
+    );
+  }
 
   void onPanStart(DragStartDetails details) {
     print('User started drawing');
@@ -41,12 +82,23 @@ class _DoodlePageState extends State<DoodlePage> {
   void onPanUpdate(DragUpdateDetails details) {
     final box = context.findRenderObject() as RenderBox;
     final point = box.globalToLocal(details.globalPosition);
-    // print(point);
+
+    RenderBox box2 =
+        containerKey.currentContext!.findRenderObject() as RenderBox;
+    Offset containerPos =
+        box2.localToGlobal(Offset.zero); //this is global position
+    // print('CONTAINER: ${containerPos.dx}, ${containerPos.dy}');
 
     setState(() {
       // dl.addPoint(point);
-      stroke.add(point);
-      strokes[c] = stroke;
+      if (point.dx < containerPos.dx + imSize + (imPadding * 2) &&
+          point.dy < containerPos.dy + imSize + (imPadding * 2) &&
+          point.dx > containerPos.dx &&
+          point.dy > containerPos.dy) {
+        // print(point);
+        stroke.add(point);
+        strokes[c] = stroke;
+      }
     });
   }
 
@@ -54,12 +106,30 @@ class _DoodlePageState extends State<DoodlePage> {
     setState(() {
       print('User ended drawing');
       // print(strokes[c]);
+
+      // normalize strokes to 28x28
+      // for (var i = 0; i < strokes.length; i++) {
+      //   var stroke = strokes[i];
+      //   for (var j = 0; j < stroke.length; j++) {
+      //     Offset p = stroke[j];
+      //     Offset n =
+      //         Offset(normalizeValue(p.dx, 1, 28), normalizeValue(p.dy, 1, 28));
+      //     print(n);
+      //   }
+      // }
+
       c += 1;
     });
   }
 
   void confirmExit() {
     showConfirmExitDialog();
+  }
+
+  @override
+  void dispose() {
+    Tflite.close();
+    super.dispose();
   }
 
   Future<void> showConfirmExitDialog() async {
@@ -100,54 +170,65 @@ class _DoodlePageState extends State<DoodlePage> {
     return true;
   }
 
+  double normalizeValue(val, min, max) {
+    return (val - min) / (max - min);
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
         child: Scaffold(
           body: Container(
+              alignment: Alignment.center,
               color: Colors.yellow[100],
               child: Stack(
                 children: [
                   GestureDetector(
-                    onPanStart: onPanStart,
-                    onPanUpdate: onPanUpdate,
-                    onPanEnd: onPanEnd,
-                    child: RepaintBoundary(
-                      child: Container(
-                        color: Colors.transparent,
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        // CustomPaint widget will go here
-                      ),
-                    ),
-                  ),
+                      onPanStart: onPanStart,
+                      onPanUpdate: onPanUpdate,
+                      onPanEnd: onPanEnd,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(widget.keyword),
+                              Container(
+                                margin: EdgeInsets.only(left: 10),
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      confirmExit();
+                                    },
+                                    child: Text('Exit')),
+                              ),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, [true, strokes]);
+                                  },
+                                  child: Text('Exit True')),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, [false, strokes]);
+                                  },
+                                  child: Text('Exit False'))
+                            ],
+                          ),
+                          RepaintBoundary(
+                              child: Container(
+                            key: containerKey,
+                            // color: Colors.transparent,
+                            color: Colors.blue.shade100,
+                            // width: MediaQuery.of(context).size.width,
+                            // height: MediaQuery.of(context).size.height,
+                            width: imSize + (imPadding * 2),
+                            height: imSize + (imPadding * 2),
+                            // CustomPaint widget will go here
+                          )),
+                        ],
+                      )),
                   CustomPaint(
                     painter: MyCustomPainter(strokes),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Keyword Here'),
-                      Container(
-                        margin: EdgeInsets.only(left: 10),
-                        child: ElevatedButton(
-                            onPressed: () {
-                              confirmExit();
-                            },
-                            child: Text('Exit')),
-                      ),
-                      ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context, [true, strokes]);
-                          },
-                          child: Text('Exit True')),
-                      ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context, [false, strokes]);
-                          },
-                          child: Text('Exit False'))
-                    ],
-                  )
                 ],
               )),
         ),

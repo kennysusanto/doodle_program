@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.landscapeRight,
     ]);
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Doodle',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -72,7 +72,10 @@ class _MainMenuState extends State<MainMenu> {
                 },
                 child: const Text('Settings')),
             ElevatedButton(
-                onPressed: () {}, child: const Text('Show Keywords')),
+                onPressed: () {
+                  Navigator.of(context).push(KeywordsPageRoute());
+                },
+                child: const Text('Show Keywords')),
           ],
         ),
       ),

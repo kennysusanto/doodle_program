@@ -260,18 +260,18 @@ class _SettingsPageState extends State<SettingsPage> {
           //   },
           //   child: Text('Update AI Model & Keywords'),
           // ),
-          ElevatedButton(
-            onPressed: () async {
-              //_download();
-              _download2(_fileUrlKeywords);
-              _download2(_fileUrlH5Model);
-              _download2(_fileUrlTfliteModel);
-              _download2(_fileUrlLabel);
-              _download2(_fileUrlLabel2);
-            },
-            child: Text('Update AI Model & Keywords'),
-          ),
-          Text(_progress),
+          // ElevatedButton(
+          //   onPressed: () async {
+          //     //_download();
+          //     // _download2(_fileUrlKeywords);
+          //     // _download2(_fileUrlH5Model);
+          //     // _download2(_fileUrlTfliteModel);
+          //     // _download2(_fileUrlLabel);
+          //     // _download2(_fileUrlLabel2);
+          //   },
+          //   child: Text('Update AI Model & Keywords'),
+          // ),
+          // Text(_progress),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

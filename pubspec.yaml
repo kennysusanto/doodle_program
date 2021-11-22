@@ -37,6 +37,7 @@ dependencies:
   dio: ^4.0.1
   permission_handler: 8.0.0
   path_provider: ^2.0.6
+  tflite: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +64,9 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+
+  assets:
+    - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

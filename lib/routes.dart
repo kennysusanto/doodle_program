@@ -1,3 +1,4 @@
+import 'package:doodle/keywords.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'main.dart';
@@ -7,23 +8,16 @@ import 'sketcher.dart';
 import 'doodle_handler.dart';
 
 class DoodlePageRoute extends CupertinoPageRoute {
-  List keywordsa = ['a'];
-  List labelsa = ['a'];
-  List labels2a = ['a'];
-  DoodlePageRoute(
-      {required this.keywordsa, required this.labelsa, required this.labels2a})
-      : super(
-            builder: (BuildContext context) => DoodlePage(
-                keywords: keywordsa, labels: labelsa, labels2: labels2a));
+  String keyword;
+  DoodlePageRoute({required this.keyword})
+      : super(builder: (BuildContext context) => DoodlePage(keyword: keyword));
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     return FadeTransition(
-        opacity: animation,
-        child: DoodlePage(
-            keywords: keywordsa, labels: labelsa, labels2: labels2a));
+        opacity: animation, child: DoodlePage(keyword: keyword));
   }
 }
 
@@ -59,5 +53,17 @@ class DoodleHandlerRoute extends CupertinoPageRoute {
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     return FadeTransition(opacity: animation, child: const DoodleHandler());
+  }
+}
+
+class KeywordsPageRoute extends CupertinoPageRoute {
+  KeywordsPageRoute()
+      : super(builder: (BuildContext context) => const KeywordsPage());
+
+  // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+    return FadeTransition(opacity: animation, child: const KeywordsPage());
   }
 }
