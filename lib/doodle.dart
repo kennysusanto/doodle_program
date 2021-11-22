@@ -6,6 +6,7 @@ import 'dart:core';
 import 'sketcher.dart';
 import 'globals.dart' as globals;
 import 'package:tflite/tflite.dart';
+import 'dart:math';
 
 class DoodlePage extends StatefulWidget {
   final String keyword;
@@ -19,8 +20,9 @@ class DoodlePage extends StatefulWidget {
 }
 
 class _DoodlePageState extends State<DoodlePage> {
-  List strokes = [];
-  List stroke = [];
+  List<List<Offset>> strokes = [];
+  List<Offset> stroke = [];
+  List imageDataInt = List.generate(28 * 28, (_) => []);
   int c = 0;
   late List _outputs;
   late File _image;
@@ -108,15 +110,36 @@ class _DoodlePageState extends State<DoodlePage> {
       // print(strokes[c]);
 
       // normalize strokes to 28x28
-      // for (var i = 0; i < strokes.length; i++) {
-      //   var stroke = strokes[i];
-      //   for (var j = 0; j < stroke.length; j++) {
-      //     Offset p = stroke[j];
-      //     Offset n =
-      //         Offset(normalizeValue(p.dx, 1, 28), normalizeValue(p.dy, 1, 28));
-      //     print(n);
-      //   }
-      // }
+      var allPoints = [];
+      for (var i = 0; i < strokes.length; i++) {
+        List<Offset> stroke = strokes[i];
+        for (var j = 0; j < stroke.length; j++) {
+          Offset p = stroke[j];
+          Offset n = Offset(normalizeValue(p.dx, 1, 28).roundToDouble(),
+              normalizeValue(p.dy, 1, 28).roundToDouble());
+          // print(n);
+          allPoints.add(n);
+        }
+      }
+
+      print('all points length: ${allPoints.length}');
+
+      for (var i = 0; i < 28; i++) {
+        for (var j = 0; j < 28; j++) {
+          var n = ((i + 1) * (j + 1)) - 1;
+          for (var k = 0; k < allPoints.length; k++) {
+            Offset p = allPoints[k];
+            if (p.dx == i) {
+              imageDataInt[n] = 255;
+            }
+            if (p.dy == j) {
+              imageDataInt[n] = 255;
+            }
+          }
+        }
+      }
+
+      print(imageDataInt);
 
       c += 1;
     });
