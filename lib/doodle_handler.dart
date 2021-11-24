@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
@@ -115,22 +112,6 @@ class _DoodleHandlerState extends State<DoodleHandler> {
 
   Future<String> loadLabels2() async {
     return await rootBundle.loadString('assets/labels2.txt');
-  }
-
-  void readTxtToList(List listName, File _file) async {
-    Stream<String> lines = _file
-        .openRead()
-        .transform(utf8.decoder) // Decode bytes to UTF-8.
-        .transform(LineSplitter()); // Convert stream to individual lines.
-    try {
-      await for (var line in lines) {
-        // print('$line: ${line.length} characters');
-        listName.add(line);
-      }
-      print('File is now closed.');
-    } catch (e) {
-      print('Error: $e');
-    }
   }
 
   @override

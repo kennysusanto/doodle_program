@@ -1,0 +1,345 @@
+The Mona Lisa
+aircraft carrier
+alarm clock
+ant
+animal migration
+airplane
+ambulance
+angel
+The Great Wall of China
+arm
+anvil
+apple
+axe
+The Eiffel Tower
+backpack
+asparagus
+basket
+baseball bat
+bandage
+barn
+basketball
+baseball
+bathtub
+bat
+beach
+bed
+bee
+belt
+bear
+beard
+banana
+book
+binoculars
+bench
+bicycle
+birthday cake
+blackberry
+blueberry
+bird
+boomerang
+bottlecap
+bracelet
+bowtie
+broccoli
+bread
+bridge
+broom
+bucket
+bus
+brain
+butterfly
+bulldozer
+bush
+cactus
+cake
+camera
+calculator
+camel
+camouflage
+campfire
+cannon
+canoe
+cat
+candle
+car
+castle
+ceiling fan
+carrot
+calendar
+cell phone
+compass
+cello
+chandelier
+circle
+clarinet
+cloud
+church
+coffee cup
+computer
+clock
+cookie
+chair
+crab
+cruise ship
+cow
+crocodile
+couch
+crown
+diamond
+crayon
+cup
+dolphin
+door
+dragon
+dresser
+donut
+dog
+drill
+dishwasher
+drums
+diving board
+duck
+ear
+eraser
+elephant
+eye
+envelope
+dumbbell
+elbow
+face
+fan
+feather
+eyeglasses
+fire hydrant
+fish
+fence
+flamingo
+fireplace
+finger
+firetruck
+flip flops
+garden hose
+flashlight
+fork
+flying saucer
+floor lamp
+frying pan
+flower
+frog
+garden
+foot
+giraffe
+grass
+guitar
+hamburger
+grapes
+hammer
+golf club
+goatee
+hedgehog
+headphones
+helmet
+hexagon
+helicopter
+hockey stick
+hat
+harp
+horse
+hot air balloon
+hand
+hospital
+hot tub
+hockey puck
+house plant
+hourglass
+hot dog
+house
+hurricane
+ice cream
+jail
+key
+jacket
+kangaroo
+ladder
+keyboard
+leaf
+lantern
+knife
+knee
+laptop
+leg
+lighter
+light bulb
+lion
+lightning
+lighthouse
+line
+lobster
+lipstick
+mailbox
+map
+lollipop
+microphone
+matches
+mermaid
+microwave
+megaphone
+monkey
+moon
+mosquito
+mountain
+motorbike
+mouth
+marker
+mouse
+mushroom
+moustache
+mug
+necklace
+nail
+ocean
+octopus
+onion
+nose
+paint can
+octagon
+panda
+owl
+palm tree
+oven
+paper clip
+paintbrush
+pants
+parachute
+pear
+peanut
+parrot
+passport
+pencil
+peas
+piano
+pickup truck
+picture frame
+pliers
+pillow
+pineapple
+police car
+pizza
+penguin
+pig
+pond
+pool
+popsicle
+postcard
+purse
+rain
+raccoon
+power outlet
+rabbit
+rainbow
+radio
+rake
+remote control
+river
+rollerskates
+rifle
+rhinoceros
+roller coaster
+potato
+sandwich
+sailboat
+saw
+saxophone
+school bus
+screwdriver
+scissors
+sea turtle
+see saw
+scorpion
+sheep
+shoe
+shark
+shorts
+shovel
+skateboard
+skull
+sleeping bag
+smiley face
+sink
+snail
+snake
+snorkel
+speedboat
+snowflake
+spoon
+skyscraper
+soccer ball
+sock
+stairs
+star
+steak
+square
+squiggle
+squirrel
+snowman
+spreadsheet
+spider
+stereo
+stitches
+stethoscope
+stove
+stop sign
+strawberry
+sun
+streetlight
+string bean
+submarine
+suitcase
+sweater
+swing set
+swan
+teapot
+sword
+syringe
+table
+t-shirt
+telephone
+teddy-bear
+toaster
+television
+toe
+tent
+tiger
+tooth
+toilet
+toothpaste
+tornado
+toothbrush
+tennis racquet
+tractor
+traffic light
+train
+triangle
+tree
+umbrella
+truck
+underwear
+trombone
+vase
+van
+trumpet
+washing machine
+watermelon
+whale
+wheel
+violin
+wine glass
+windmill
+waterslide
+wine bottle
+wristwatch
+zigzag
+yoga
+zebra
+cooler

@@ -12,7 +12,7 @@ class MyCustomPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint poly = Paint();
     poly.style = PaintingStyle.stroke;
-    poly.strokeWidth = 5;
+    poly.strokeWidth = 2;
     Path path = Path();
     // print(dl.firstPoint);
     // print(dl.points.isNotEmpty);

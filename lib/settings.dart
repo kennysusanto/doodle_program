@@ -1,13 +1,9 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:dio/dio.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'globals.dart' as globals;
 
 class SettingsPage extends StatefulWidget {
@@ -91,22 +87,22 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _download2(String url) async {
-    final status = await Permission.storage.request();
+    // final status = await Permission.storage.request();
 
-    if (status.isGranted) {
-      print('Starting download $url');
-      final externalDir = await getExternalStorageDirectory();
+    // if (status.isGranted) {
+    //   print('Starting download $url');
+    //   final externalDir = await getExternalStorageDirectory();
 
-      final id = await FlutterDownloader.enqueue(
-        url: url,
-        savedDir: externalDir!.path,
-        showNotification: true,
-        openFileFromNotification: true,
-      );
-      // print('Downloading $id...');
-    } else {
-      print('Permission Denied');
-    }
+    //   final id = await FlutterDownloader.enqueue(
+    //     url: url,
+    //     savedDir: externalDir!.path,
+    //     showNotification: true,
+    //     openFileFromNotification: true,
+    //   );
+    //   // print('Downloading $id...');
+    // } else {
+    //   print('Permission Denied');
+    // }
   }
 
   // Future<bool> _requestPermissions() async {

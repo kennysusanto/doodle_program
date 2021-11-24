@@ -1,8 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class KeywordsPage extends StatefulWidget {
   const KeywordsPage({Key? key}) : super(key: key);
@@ -22,22 +20,13 @@ class _KeywordsPageState extends State<KeywordsPage> {
 
   void loadKeywords() async {
 // load keywords and h5 model
-    final _downloadsFolder = await getExternalStorageDirectory();
-    File _keywordsFile = File(_downloadsFolder!.path + '/keywords.txt');
-    Stream<String> lines3 = _keywordsFile
-        .openRead()
-        .transform(utf8.decoder) // Decode bytes to UTF-8.
-        .transform(LineSplitter()); // Convert stream to individual lines.
-    try {
-      await for (var line in lines3) {
-        // print('$line: ${line.length} characters');
-        _keywords.add(line);
-      }
-      print('File is now closed.');
-    } catch (e) {
-      print('Error: $e');
-    }
+    final _keywordsString = await loadKeywordFile();
+    _keywords = _keywordsString.split("\n");
     setState(() {});
+  }
+
+  Future<String> loadKeywordFile() async {
+    return await rootBundle.loadString('assets/keywords.txt');
   }
 
   @override
