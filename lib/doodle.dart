@@ -11,6 +11,7 @@ import 'sketcher.dart';
 import 'globals.dart' as globals;
 import 'package:tflite/tflite.dart';
 import 'package:image/image.dart' as im;
+import 'package:bitmap/bitmap.dart';
 
 class DoodlePage extends StatefulWidget {
   final String keyword;
@@ -39,7 +40,11 @@ class _DoodlePageState extends State<DoodlePage> {
   GlobalKey containerKey = GlobalKey();
   GlobalKey repaintBoundaryKey = GlobalKey();
   GlobalKey containerImageKey = GlobalKey();
+  GlobalKey containerImageKey2 = GlobalKey();
   Image imGen = const Image(
+      image: NetworkImage(
+          'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg'));
+  Image imGen2 = const Image(
       image: NetworkImage(
           'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg'));
 
@@ -49,7 +54,6 @@ class _DoodlePageState extends State<DoodlePage> {
     // load tflite model
 
     super.initState();
-
     loadModel();
     setState(() {});
   }
@@ -73,16 +77,26 @@ class _DoodlePageState extends State<DoodlePage> {
   Future<List?> classifyImage(Uint8List imgBin) async {
     List? output = await Tflite.runModelOnBinary(binary: imgBin);
     print("predict = " + output.toString());
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(output.toString()),
+      duration: const Duration(milliseconds: 1000),
+    ));
     return output;
     // setState(() {
     //   _outputs = output!;
     // });
   }
 
-  loadModel() async {
+  void loadModel() async {
+    // if (Tflite != null) {
+    //   var a = await Tflite.close();
+    //   print(a);
+    // }
+
     await Tflite.loadModel(
       model: "assets/my_tflite_model.tflite",
-      labels: "assets/labels.txt",
+      labels: "assets/labels2.txt",
     );
   }
 
@@ -158,6 +172,7 @@ class _DoodlePageState extends State<DoodlePage> {
 
     try {
       var a = processCanvasPoints(strokes);
+
       //for (var i = 0; i < a.length; i++) print('CLASSIFIED AS: ${a[i]}');
     } catch (e) {
       print(e);
@@ -206,10 +221,19 @@ class _DoodlePageState extends State<DoodlePage> {
       }
     }
 
+    canvas.drawRect(
+        Rect.fromPoints(
+          Offset(0.0, 0.0),
+          Offset(canvasSizeWithPadding, canvasSizeWithPadding),
+        ),
+        Paint()
+          ..color = Colors.black
+          ..style = ui.PaintingStyle.fill);
+
     canvas.drawPath(
         allPaths,
         Paint()
-          ..color = Colors.black
+          ..color = Colors.white
           ..style = ui.PaintingStyle.stroke);
 
     // At this point our virtual canvas is ready and we can export an image from it
@@ -224,35 +248,81 @@ class _DoodlePageState extends State<DoodlePage> {
     // There's quite a funny game at this point. The image class we are using doesn't allow resizing.
     // In order to achieve that, we need to convert it to another image class that we are importing
     // as 'im' from package:image/image.dart
-    try {
-      im.Image? imImage = im.decodeImage(pngUint8List);
-      im.Image resizedImage = im.copyResize(
-        imImage!,
-        width: kModelInputSize,
-        height: kModelInputSize,
-      );
-    } catch (e) {
-      print('ERROR DECODING: $e');
-    }
+
+    im.Image? imImage = im.decodeImage(pngUint8List);
+    im.Image resizedImage = im.copyResize(
+      imImage!,
+      width: kModelInputSize,
+      height: kModelInputSize,
+    );
+    // print(im.encodePng(resizedImage));
 
     // Finally, we can return our the prediction we will perform over that
     // resized image
-    print(pngUint8List.length);
+    // print(pngUint8List.length);
     imGen = Image.memory(pngUint8List);
+    var a = imageToByteListUint82(resizedImage, 28);
+    print('${resizedImage.length}, ${a.length}');
+    var b = Bitmap.fromHeadful(28, 28, a);
+    print(b.size);
+    imGen2 = (await b.buildImage()) as Image;
+    // imGen2 = (await decodeImageFromList(a)) as Image;
 
+    // var c = im.decodePng(a);
+    // print(a);
+    // Image b = Image.memory(imageToByteListUint82(c!, 28));
+    // imGen2 = b;
     setState(() {});
-    Uint8List b = Uint8List(28 * 28 * 4);
-    for (var m = 0; m < b.length; m++) {
-      if (m < pngUint8List.length) {
-        b[m] = pngUint8List[m];
-      } else {
-        b[m] = 0;
-      }
-      print(b[m].bitLength);
-    }
 
-    return classifyImage(b);
+    return classifyImage(imageToByteListUint8(resizedImage, 28));
     // return predictImage(resizedImage);
+  }
+
+  Uint8List imageToByteListFloat32(
+      im.Image image, int inputSize, double mean, double std) {
+    var convertedBytes = Float32List(1 * inputSize * inputSize * 3);
+    var buffer = Float32List.view(convertedBytes.buffer);
+    int pixelIndex = 0;
+    for (var i = 0; i < inputSize; i++) {
+      for (var j = 0; j < inputSize; j++) {
+        var pixel = image.getPixel(j, i);
+        buffer[pixelIndex++] = (im.getRed(pixel) - mean) / std;
+        buffer[pixelIndex++] = (im.getGreen(pixel) - mean) / std;
+        buffer[pixelIndex++] = (im.getBlue(pixel) - mean) / std;
+      }
+    }
+    return convertedBytes.buffer.asUint8List();
+  }
+
+  Uint8List imageToByteListUint8(im.Image image, int inputSize) {
+    var convertedBytes = Uint8List(1 * inputSize * inputSize * 4);
+    var buffer = Uint8List.view(convertedBytes.buffer);
+    int pixelIndex = 0;
+    for (var i = 0; i < inputSize; i++) {
+      for (var j = 0; j < inputSize; j++) {
+        var pixel = image.getPixel(j, i);
+        buffer[pixelIndex++] = im.getRed(pixel);
+        buffer[pixelIndex++] = im.getGreen(pixel);
+        buffer[pixelIndex++] = im.getBlue(pixel);
+      }
+    }
+    return convertedBytes.buffer.asUint8List();
+  }
+
+  Uint8List imageToByteListUint82(im.Image image, int inputSize) {
+    var convertedBytes = Uint8List(1 * inputSize * inputSize * 3);
+    var buffer = Uint8List.view(convertedBytes.buffer);
+    int pixelIndex = 0;
+    for (var i = 0; i < inputSize; i++) {
+      for (var j = 0; j < inputSize; j++) {
+        var pixel = image.getPixel(j, i);
+        buffer[pixelIndex++] = im.getRed(pixel);
+        buffer[pixelIndex++] = im.getGreen(pixel);
+        buffer[pixelIndex++] = im.getBlue(pixel);
+      }
+    }
+    // print(convertedBytes.buffer.asUint8List());
+    return convertedBytes.buffer.asUint8List();
   }
 
   void confirmExit() {
@@ -261,7 +331,7 @@ class _DoodlePageState extends State<DoodlePage> {
 
   @override
   void dispose() {
-    Tflite.close();
+    // closeTflite();
     super.dispose();
   }
 
@@ -360,10 +430,18 @@ class _DoodlePageState extends State<DoodlePage> {
                                     height: imSize + (imPadding * 2),
                                     // CustomPaint widget will go here
                                   )),
-                              Container(
+                              SizedBox(
                                 key: containerImageKey,
                                 child: imGen,
-                              )
+                                width: 280,
+                                height: 280,
+                              ),
+                              SizedBox(
+                                key: containerImageKey2,
+                                child: imGen2,
+                                width: 28,
+                                height: 28,
+                              ),
                             ],
                           )
                         ],

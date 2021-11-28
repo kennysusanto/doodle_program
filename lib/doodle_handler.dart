@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:tflite/tflite.dart';
 import 'globals.dart' as globals;
 import 'routes.dart';
 import 'dart:math';
@@ -82,14 +83,16 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       // select random keywords for n rounds
       var rng = new Random();
       Set<int> rnglist = {};
-      for (var i = 0; i < numOfRounds; i++) {
+      // print(rnglist.length);
+      while (rnglist.length < numOfRounds) {
         rnglist.add(rng.nextInt(_labels2List
             .length)); // still using the trained keywords, not full keywords
+        // print(rnglist.toList()[rnglist.length - 1]);
       }
 
-      rnglist.forEach((element) {
+      for (var element in rnglist) {
         print(_labels2List[element]);
-      });
+      }
 
       for (int i = 0; i < numOfRounds; i++) {
         final res = await Navigator.of(context)
