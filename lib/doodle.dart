@@ -234,7 +234,8 @@ class _DoodlePageState extends State<DoodlePage> {
         allPaths,
         Paint()
           ..color = Colors.white
-          ..style = ui.PaintingStyle.stroke);
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 5);
 
     // At this point our virtual canvas is ready and we can export an image from it
     final picture = recorder.endRecording();
@@ -262,10 +263,13 @@ class _DoodlePageState extends State<DoodlePage> {
     // print(pngUint8List.length);
     imGen = Image.memory(pngUint8List);
     var a = imageToByteListUint82(resizedImage, 28);
-    print('${resizedImage.length}, ${a.length}');
-    var b = Bitmap.fromHeadful(28, 28, a);
-    print(b.size);
-    imGen2 = (await b.buildImage()) as Image;
+    // print('${resizedImage.length}, ${a.length}');
+    var b = Bitmap.fromHeadless(28, 28, a);
+    // print(b.size);
+    ui.Image c = await b.buildImage();
+    final d = await c.toByteData(format: ui.ImageByteFormat.png);
+    Uint8List e = d!.buffer.asUint8List();
+    imGen2 = Image.memory(e);
     // imGen2 = (await decodeImageFromList(a)) as Image;
 
     // var c = im.decodePng(a);
@@ -310,7 +314,7 @@ class _DoodlePageState extends State<DoodlePage> {
   }
 
   Uint8List imageToByteListUint82(im.Image image, int inputSize) {
-    var convertedBytes = Uint8List(1 * inputSize * inputSize * 3);
+    var convertedBytes = Uint8List(1 * inputSize * inputSize * 4);
     var buffer = Uint8List.view(convertedBytes.buffer);
     int pixelIndex = 0;
     for (var i = 0; i < inputSize; i++) {
