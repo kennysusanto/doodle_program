@@ -83,7 +83,7 @@ class _DoodlePageState extends State<DoodlePage> {
   String modelName = 'my_tflite_model.tflite';
 
   NormalizeOp preProcessNormalizeOp = NormalizeOp(0, 1);
-  NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 255);
+  NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 1);
 
   @override
   void initState() {
@@ -190,7 +190,8 @@ class _DoodlePageState extends State<DoodlePage> {
     final runs = DateTime.now().millisecondsSinceEpoch;
 
     print('output buffer length: ${_outputBuffer.buffer.lengthInBytes}');
-
+    print('input tensors: ${interpreter.getInputTensors()}');
+    print('output tensors: ${interpreter.getOutputTensors()}');
     interpreter.run(_inputImage.buffer, _outputBuffer.getBuffer());
     final run = DateTime.now().millisecondsSinceEpoch - runs;
 
