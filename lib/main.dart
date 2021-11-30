@@ -58,14 +58,18 @@ class _MainMenuState extends State<MainMenu> {
         title: const Text('Main Menu'),
       ),
       body: Center(
+          child: IntrinsicWidth(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(DoodleHandlerRoute());
-                },
-                child: const Text('New Game')),
+            SizedBox(
+              child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(DoodleHandlerRoute());
+                  },
+                  child: const Text('New Game')),
+            ),
             ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(SettingsPageRoute());
@@ -78,7 +82,7 @@ class _MainMenuState extends State<MainMenu> {
                 child: const Text('Show Keywords')),
           ],
         ),
-      ),
+      )),
     );
   }
 }

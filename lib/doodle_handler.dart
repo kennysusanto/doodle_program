@@ -24,61 +24,8 @@ class _DoodleHandlerState extends State<DoodleHandler> {
 
   void send() async {
     SchedulerBinding.instance!.addPostFrameCallback((_) async {
-      // load keywords and h5 model
-      // final _downloadsFolder = await getExternalStorageDirectory();
-      // final _keywordsFile = File(_downloadsFolder!.path + '/keywords.txt');
-      // final _h5ModelFile = File(_downloadsFolder.path + '/my_h5_model.h5');
-      // final _tfliteModelFile =
-      //     File(_downloadsFolder.path + '/my_tflite_model.tflite');
-      // final _labelsFile = File(_downloadsFolder.path + '/labels.txt');
       final _labels2String = await loadLabels2();
-
-      // load txt file strings to list
-      // Stream<String> lines = _keywordsFile
-      //     .openRead()
-      //     .transform(utf8.decoder) // Decode bytes to UTF-8.
-      //     .transform(LineSplitter()); // Convert stream to individual lines.
-      // try {
-      //   await for (var line in lines) {
-      //     // print('$line: ${line.length} characters');
-      //     keywords.add(line);
-      //   }
-      //   print('File is now closed.');
-      // } catch (e) {
-      //   print('Error: $e');
-      // }
-
-      // Stream<String> lines2 = _labelsFile
-      //     .openRead()
-      //     .transform(utf8.decoder) // Decode bytes to UTF-8.
-      //     .transform(LineSplitter()); // Convert stream to individual lines.
-      // try {
-      //   await for (var line in lines2) {
-      //     // print('$line: ${line.length} characters');
-      //     labels.add(line);
-      //   }
-      //   print('File is now closed.');
-      // } catch (e) {
-      //   print('Error: $e');
-      // }
-
-      // Stream<String> lines3 = _labels2File
-      //     .openRead()
-      //     .transform(utf8.decoder) // Decode bytes to UTF-8.
-      //     .transform(LineSplitter()); // Convert stream to individual lines.
-      // try {
-      //   await for (var line in lines3) {
-      //     // print('$line: ${line.length} characters');
-      //     labels2.add(line);
-      //   }
-      //   print('File is now closed.');
-      // } catch (e) {
-      //   print('Error: $e');
-      // }
-
-      // print('Labels 2: ${_labels2String}');
       final _labels2List = _labels2String.split("\n");
-      // print('Labels 2 ${_labels2List.length}');
 
       // select random keywords for n rounds
       var rng = new Random();
@@ -87,7 +34,6 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       while (rnglist.length < numOfRounds) {
         rnglist.add(rng.nextInt(_labels2List
             .length)); // still using the trained keywords, not full keywords
-        // print(rnglist.toList()[rnglist.length - 1]);
       }
 
       for (var element in rnglist) {

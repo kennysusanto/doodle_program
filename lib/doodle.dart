@@ -1,17 +1,20 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'dart:core';
 import 'sketcher.dart';
 import 'globals.dart' as globals;
 import 'package:tflite/tflite.dart';
 import 'package:image/image.dart' as im;
-import 'package:bitmap/bitmap.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:path_provider/path_provider.dart' as pp;
+import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
+import 'dart:math';
+import 'package:collection/collection.dart';
 
 class DoodlePage extends StatefulWidget {
   final String keyword;
@@ -41,12 +44,46 @@ class _DoodlePageState extends State<DoodlePage> {
   GlobalKey repaintBoundaryKey = GlobalKey();
   GlobalKey containerImageKey = GlobalKey();
   GlobalKey containerImageKey2 = GlobalKey();
+  // Image imGen = const Image(
+  //     image: NetworkImage(
+  //   'https://pixabay.com/images/id-49520/',
+  // ));
+
   Image imGen = const Image(
       image: NetworkImage(
-          'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg'));
+    'https://pixabay.com/images/id-49520/',
+  ));
   Image imGen2 = const Image(
       image: NetworkImage(
-          'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg'));
+    'https://pixabay.com/images/id-49520/',
+  ));
+
+  bool imgAva = false;
+
+  // tflite_flutter package & tflite_flutter_helper package
+
+  late Interpreter interpreter;
+  late List<int> _inputShape;
+  late List<int> _outputShape;
+
+  late TensorImage _inputImage;
+  late TensorBuffer _outputBuffer;
+
+  late TfLiteType _inputType;
+  late TfLiteType _outputType;
+
+  final String _labelsFileName = 'assets/labels2.txt';
+
+  final int _labelsLength = 20;
+
+  late var _probabilityProcessor;
+
+  late List<String> labels;
+
+  String modelName = 'my_tflite_model.tflite';
+
+  NormalizeOp preProcessNormalizeOp = NormalizeOp(0, 1);
+  NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 255);
 
   @override
   void initState() {
@@ -55,23 +92,20 @@ class _DoodlePageState extends State<DoodlePage> {
 
     super.initState();
     loadModel();
+    loadLabels();
     setState(() {});
   }
 
-  pickImage() async {
-    // var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    // if (image == null) return null;
-    // setState(() {
-    //   _image = image;
-    // });
-    // classifyImage(image);
-  }
-
-  Uint8List convertStringToUint8List(String str) {
-    final List<int> codeUnits = str.codeUnits;
-    final Uint8List unit8List = Uint8List.fromList(codeUnits);
-
-    return unit8List;
+  Widget _displayMedia(Image media) {
+    if (imgAva) {
+      return media;
+    } else {
+      return CachedNetworkImage(
+        imageUrl: "https://i.imgur.com/0fNdo9h.jpeg",
+        placeholder: (context, url) => new CircularProgressIndicator(),
+        errorWidget: (context, url, error) => new Icon(Icons.error),
+      );
+    }
   }
 
   Future<List?> classifyImage(Uint8List imgBin) async {
@@ -83,21 +117,121 @@ class _DoodlePageState extends State<DoodlePage> {
       duration: const Duration(milliseconds: 1000),
     ));
     return output;
-    // setState(() {
-    //   _outputs = output!;
-    // });
+  }
+
+  Future<List?> classifyImage2(String filePath) async {
+    List? output = await Tflite.runModelOnImage(path: filePath);
+    print("predict = " + output.toString());
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(output.toString()),
+      duration: const Duration(milliseconds: 1000),
+    ));
+    return output;
+  }
+
+  Future<void> loadLabels() async {
+    labels = await FileUtil.loadLabels(_labelsFileName);
+    if (labels.length == _labelsLength) {
+      print('Labels loaded successfully');
+    } else {
+      print('Unable to load labels');
+    }
   }
 
   void loadModel() async {
-    // if (Tflite != null) {
-    //   var a = await Tflite.close();
-    //   print(a);
-    // }
+    try {
+      interpreter = await Interpreter.fromAsset('my_tflite_model.tflite');
+      print('Interpreter Created Successfully');
 
-    await Tflite.loadModel(
-      model: "assets/my_tflite_model.tflite",
-      labels: "assets/labels2.txt",
-    );
+      _inputShape = interpreter.getInputTensor(0).shape;
+      _outputShape = interpreter.getOutputTensor(0).shape;
+      _inputType = interpreter.getInputTensor(0).type;
+      _outputType = interpreter.getOutputTensor(0).type;
+
+      print('$_inputShape $_outputShape $_inputType $_outputType');
+
+      _outputBuffer = TensorBuffer.createFixedSize(_outputShape, _outputType);
+      _probabilityProcessor =
+          TensorProcessorBuilder().add(postProcessNormalizeOp).build();
+    } catch (e) {
+      print('Unable to create interpreter, Caught Exception: ${e.toString()}');
+    }
+    // await Tflite.loadModel(
+    //   model: "assets/my_tflite_model.tflite",
+    //   labels: "assets/labels2.txt",
+    // );
+  }
+
+  TensorImage _preProcess() {
+    int cropSize = min(_inputImage.height, _inputImage.width);
+    return ImageProcessorBuilder()
+        .add(ResizeWithCropOrPadOp(cropSize, cropSize))
+        .add(ResizeOp(
+            _inputShape[1], _inputShape[2], ResizeMethod.NEAREST_NEIGHBOUR))
+        .add(preProcessNormalizeOp)
+        .build()
+        .process(_inputImage);
+  }
+
+  Category predict(im.Image image) {
+    final pres = DateTime.now().millisecondsSinceEpoch;
+    _inputImage = TensorImage(_inputType);
+    _inputImage.loadImage(image);
+    print(
+        'before preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.lengthInBytes}');
+    _inputImage = _preProcess();
+    print(
+        'after preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.lengthInBytes}');
+    final pre = DateTime.now().millisecondsSinceEpoch - pres;
+
+    print('Time to load image: $pre ms');
+
+    final runs = DateTime.now().millisecondsSinceEpoch;
+
+    print('output buffer length: ${_outputBuffer.buffer.lengthInBytes}');
+
+    interpreter.run(_inputImage.buffer, _outputBuffer.getBuffer());
+    final run = DateTime.now().millisecondsSinceEpoch - runs;
+
+    print('Time to run inference: $run ms');
+
+    Map<String, double> labeledProb = TensorLabel.fromList(
+            labels, _probabilityProcessor.process(_outputBuffer))
+        .getMapWithFloatValue();
+    final pred = getTopProbability(labeledProb);
+
+    return Category(pred.key, pred.value);
+  }
+
+  void close() {
+    interpreter.close();
+  }
+
+  MapEntry<String, double> getTopProbability(Map<String, double> labeledProb) {
+    var pq = PriorityQueue<MapEntry<String, double>>(compare);
+    pq.addAll(labeledProb.entries);
+
+    return pq.first;
+  }
+
+  int compare(MapEntry<String, double> e1, MapEntry<String, double> e2) {
+    if (e1.value > e2.value) {
+      return -1;
+    } else if (e1.value == e2.value) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+
+  void _predict(File img) async {
+    im.Image imageInput = im.decodeImage(img.readAsBytesSync())!;
+    print('imageInput: ${imageInput.length}');
+    var pred = predict(imageInput);
+    print('prediction: $pred');
+
+    setState(() {});
   }
 
   void onPanStart(DragStartDetails details) {
@@ -122,7 +256,6 @@ class _DoodlePageState extends State<DoodlePage> {
         containerKey.currentContext!.findRenderObject() as RenderBox;
     Offset containerPos =
         box2.localToGlobal(Offset.zero); //this is global position
-    // print('CONTAINER: ${containerPos.dx}, ${containerPos.dy}');
 
     setState(() {
       // dl.addPoint(point);
@@ -139,41 +272,9 @@ class _DoodlePageState extends State<DoodlePage> {
 
   void onPanEnd(DragEndDetails details) {
     print('User ended drawing');
-    // print(strokes[c]);
-
-    // normalize strokes to 28x28
-    // List<Offset> allPoints = [];
-
-    // for (var i = 0; i < strokes.length; i++) {
-    //   List<Offset> stroke = strokes[i];
-    //   for (var j = 0; j < stroke.length; j++) {
-    //     Offset p = Offset(stroke[j].dx, stroke[j].dy - 40);
-
-    //     allPoints.add(p);
-    //   }
-    // }
-
-    // print('all points length: ${allPoints.length}');
-
-    // for (var i = 0; i < 28; i++) {
-    //   for (var j = 0; j < 28; j++) {
-    //     var n = ((i + 1) * (j + 1)) - 1;
-    //     for (var k = 0; k < allPoints.length; k++) {
-    //       Offset p = allPoints[k];
-    //       if (p.dx == i) {
-    //         imageDataInt[n] = 255;
-    //       }
-    //       if (p.dy == j) {
-    //         imageDataInt[n] = 255;
-    //       }
-    //     }
-    //   }
-    // }
 
     try {
       var a = processCanvasPoints(strokes);
-
-      //for (var i = 0; i < a.length; i++) print('CLASSIFIED AS: ${a[i]}');
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -187,7 +288,6 @@ class _DoodlePageState extends State<DoodlePage> {
   }
 
   Future<List?> processCanvasPoints(List<List<Offset>> strokes) async {
-    // We create an empty canvas 280x280 pixels
     final canvasSizeWithPadding = kCanvasSize + (2 * kCanvasInnerOffset);
     final canvasOffset = Offset(kCanvasInnerOffset, kCanvasInnerOffset);
     final recorder = ui.PictureRecorder();
@@ -199,23 +299,15 @@ class _DoodlePageState extends State<DoodlePage> {
       ),
     );
 
-    // Now we draw our list of points on white paint
-    // for (int i = 0; i < points.length - 1; i++) {
-    //   if (points[i] != null && points[i + 1] != null) {
-    //     canvas.drawLine(
-    //         points[i], points[i + 1], Paint()..color = Colors.black);
-    //   }
-    // }
-
     Path allPaths = Path();
     for (var i = 0; i < strokes.length; i++) {
       List<Offset> stroke = strokes[i];
       for (var j = 0; j < stroke.length; j++) {
         if (j == 0) {
-          Offset p = Offset(stroke[j].dx, stroke[j].dy - 40);
+          Offset p = Offset(stroke[j].dx, stroke[j].dy - kCanvasInnerOffset);
           allPaths.moveTo(p.dx, p.dy);
         } else {
-          Offset p = Offset(stroke[j].dx, stroke[j].dy - 40);
+          Offset p = Offset(stroke[j].dx, stroke[j].dy - kCanvasInnerOffset);
           allPaths.lineTo(p.dx, p.dy);
         }
       }
@@ -235,7 +327,7 @@ class _DoodlePageState extends State<DoodlePage> {
         Paint()
           ..color = Colors.white
           ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 5);
+          ..strokeWidth = 10);
 
     // At this point our virtual canvas is ready and we can export an image from it
     final picture = recorder.endRecording();
@@ -256,30 +348,40 @@ class _DoodlePageState extends State<DoodlePage> {
       width: kModelInputSize,
       height: kModelInputSize,
     );
+
+    Directory? docsDir = await pp.getExternalStorageDirectory();
+    // print(docsDir!.path);
+    File('${docsDir!.path}/a.png').writeAsBytes(im.encodePng(resizedImage));
     // print(im.encodePng(resizedImage));
 
     // Finally, we can return our the prediction we will perform over that
     // resized image
-    // print(pngUint8List.length);
     imGen = Image.memory(pngUint8List);
-    var a = imageToByteListUint82(resizedImage, 28);
-    // print('${resizedImage.length}, ${a.length}');
-    var b = Bitmap.fromHeadless(28, 28, a);
-    // print(b.size);
-    ui.Image c = await b.buildImage();
-    final d = await c.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List e = d!.buffer.asUint8List();
-    imGen2 = Image.memory(e);
+    // var a = imageToByteListUint82(resizedImage, 28);
+    // var b = Bitmap.fromHeadless(28, 28, a);
+    // ui.Image c = await b.buildImage();
+    // final d = await c.toByteData(format: ui.ImageByteFormat.png);
+    // Uint8List e = d!.buffer.asUint8List();
+    var bytes = await File('${docsDir.path}/a.png').readAsBytes();
+
+    imGen2 = Image.memory(bytes);
     // imGen2 = (await decodeImageFromList(a)) as Image;
 
     // var c = im.decodePng(a);
     // print(a);
     // Image b = Image.memory(imageToByteListUint82(c!, 28));
     // imGen2 = b;
-    setState(() {});
+    setState(() {
+      imgAva = true;
+    });
 
-    return classifyImage(imageToByteListUint8(resizedImage, 28));
+    // return classifyImage(imageToByteListUint83(resizedImage, 28));
+    // return classifyImage2('${docsDir.path}/a.png');
     // return predictImage(resizedImage);
+
+    _predict(File('${docsDir.path}/a.png'));
+
+    return null;
   }
 
   Uint8List imageToByteListFloat32(
@@ -310,6 +412,7 @@ class _DoodlePageState extends State<DoodlePage> {
         buffer[pixelIndex++] = im.getBlue(pixel);
       }
     }
+    // print(convertedBytes.buffer.asUint8List().length);
     return convertedBytes.buffer.asUint8List();
   }
 
@@ -326,6 +429,21 @@ class _DoodlePageState extends State<DoodlePage> {
       }
     }
     // print(convertedBytes.buffer.asUint8List());
+    return convertedBytes.buffer.asUint8List();
+  }
+
+  Uint8List imageToByteListUint83(im.Image image, int inputSize) {
+    var convertedBytes = Uint8List(1 * inputSize * inputSize * 4);
+    var buffer = Uint8List.view(convertedBytes.buffer);
+    int pixelIndex = 0;
+    for (var i = 0; i < inputSize; i++) {
+      for (var j = 0; j < inputSize; j++) {
+        var pixel = image.getPixel(j, i);
+        buffer[pixelIndex] =
+            im.getRed(pixel) + im.getBlue(pixel) + im.getGreen(pixel);
+      }
+    }
+    print(convertedBytes.buffer.asUint8List());
     return convertedBytes.buffer.asUint8List();
   }
 
@@ -436,15 +554,21 @@ class _DoodlePageState extends State<DoodlePage> {
                                   )),
                               SizedBox(
                                 key: containerImageKey,
-                                child: imGen,
+                                child: FittedBox(
+                                  fit: BoxFit.fill,
+                                  child: _displayMedia(imGen),
+                                ),
                                 width: 280,
                                 height: 280,
                               ),
                               SizedBox(
                                 key: containerImageKey2,
-                                child: imGen2,
-                                width: 28,
-                                height: 28,
+                                child: FittedBox(
+                                  fit: BoxFit.fill,
+                                  child: _displayMedia(imGen2),
+                                ),
+                                width: 140,
+                                height: 140,
                               ),
                             ],
                           )
