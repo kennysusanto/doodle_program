@@ -146,8 +146,10 @@ class _DoodlePageState extends State<DoodlePage> {
 
       _inputShape = interpreter.getInputTensor(0).shape;
       _outputShape = interpreter.getOutputTensor(0).shape;
-      _inputType = interpreter.getInputTensor(0).type;
-      _outputType = interpreter.getOutputTensor(0).type;
+      // _inputType = interpreter.getInputTensor(0).type;
+      // _outputType = interpreter.getOutputTensor(0).type;
+      _inputType = TfLiteType.uint8;
+      _outputType = TfLiteType.uint8;
 
       print('$_inputShape $_outputShape $_inputType $_outputType');
 
@@ -174,15 +176,17 @@ class _DoodlePageState extends State<DoodlePage> {
         .process(_inputImage);
   }
 
-  Category predict(im.Image image) {
+  Future<Category> predict(im.Image image) async {
     final pres = DateTime.now().millisecondsSinceEpoch;
     _inputImage = TensorImage(_inputType);
     _inputImage.loadImage(image);
+    // im.Image? b = im.decodePng(image.getBytes(format: im.Format.rgba));
+
     print(
-        'before preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.lengthInBytes}');
+        'before preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.asUint8List().length}');
     _inputImage = _preProcess();
     print(
-        'after preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.lengthInBytes}');
+        'after preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.asUint8List().length}');
     final pre = DateTime.now().millisecondsSinceEpoch - pres;
 
     print('Time to load image: $pre ms');
@@ -192,7 +196,8 @@ class _DoodlePageState extends State<DoodlePage> {
     print('output buffer length: ${_outputBuffer.buffer.lengthInBytes}');
     print('input tensors: ${interpreter.getInputTensors()}');
     print('output tensors: ${interpreter.getOutputTensors()}');
-    interpreter.run(_inputImage.buffer, _outputBuffer.getBuffer());
+    interpreter.run(_inputImage.buffer.asUint8List(),
+        _outputBuffer.getBuffer().asUint8List());
     final run = DateTime.now().millisecondsSinceEpoch - runs;
 
     print('Time to run inference: $run ms');
@@ -229,7 +234,7 @@ class _DoodlePageState extends State<DoodlePage> {
   void _predict(File img) async {
     im.Image imageInput = im.decodeImage(img.readAsBytesSync())!;
     print('imageInput: ${imageInput.length}');
-    var pred = predict(imageInput);
+    var pred = await predict(imageInput);
     print('prediction: $pred');
 
     setState(() {});
