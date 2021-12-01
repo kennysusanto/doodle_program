@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:tflite/tflite.dart';
 import 'globals.dart' as globals;
 import 'routes.dart';
 import 'dart:math';

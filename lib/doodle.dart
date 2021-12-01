@@ -7,7 +7,6 @@ import 'package:flutter/rendering.dart';
 import 'dart:core';
 import 'sketcher.dart';
 import 'globals.dart' as globals;
-import 'package:tflite/tflite.dart';
 import 'package:image/image.dart' as im;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:path_provider/path_provider.dart' as pp;
@@ -108,27 +107,27 @@ class _DoodlePageState extends State<DoodlePage> {
     }
   }
 
-  Future<List?> classifyImage(Uint8List imgBin) async {
-    List? output = await Tflite.runModelOnBinary(binary: imgBin);
-    print("predict = " + output.toString());
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(output.toString()),
-      duration: const Duration(milliseconds: 1000),
-    ));
-    return output;
-  }
+  // Future<List?> classifyImage(Uint8List imgBin) async {
+  //   List? output = await Tflite.runModelOnBinary(binary: imgBin);
+  //   print("predict = " + output.toString());
+  //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //     content: Text(output.toString()),
+  //     duration: const Duration(milliseconds: 1000),
+  //   ));
+  //   return output;
+  // }
 
-  Future<List?> classifyImage2(String filePath) async {
-    List? output = await Tflite.runModelOnImage(path: filePath);
-    print("predict = " + output.toString());
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(output.toString()),
-      duration: const Duration(milliseconds: 1000),
-    ));
-    return output;
-  }
+  // Future<List?> classifyImage2(String filePath) async {
+  //   List? output = await Tflite.runModelOnImage(path: filePath);
+  //   print("predict = " + output.toString());
+  //   ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //     content: Text(output.toString()),
+  //     duration: const Duration(milliseconds: 1000),
+  //   ));
+  //   return output;
+  // }
 
   Future<void> loadLabels() async {
     labels = await FileUtil.loadLabels(_labelsFileName);
@@ -176,10 +175,22 @@ class _DoodlePageState extends State<DoodlePage> {
         .process(_inputImage);
   }
 
-  Future<Category> predict(im.Image image) async {
+  Future<Category> predict(im.Image image, File fileIM) async {
     final pres = DateTime.now().millisecondsSinceEpoch;
     _inputImage = TensorImage(_inputType);
+    // _inputImage.loadImage(image); ini main
+
+    // Directory? docsDir = await pp.getExternalStorageDirectory();
+    // File('${docsDir!.path}/b.png').writeAsBytes(im.encodePng(image));
+    // var img = File('${docsDir.path}/b.png');
+    // im.Image a = im.decodePng(img.readAsBytesSync())!;
+    print('a channels: ${image.channels}');
+    // print('a data: ${image.data}');
+    print('a data length: ${image.data.length}');
+    print('a length in bytes: ${image.getBytes().lengthInBytes}');
     _inputImage.loadImage(image);
+    print(_inputImage.buffer.asFloat32List().length);
+    print(_inputImage.buffer.asFloat32List().lengthInBytes);
     // im.Image? b = im.decodePng(image.getBytes(format: im.Format.rgba));
 
     print(
@@ -196,8 +207,28 @@ class _DoodlePageState extends State<DoodlePage> {
     print('output buffer length: ${_outputBuffer.buffer.lengthInBytes}');
     print('input tensors: ${interpreter.getInputTensors()}');
     print('output tensors: ${interpreter.getOutputTensors()}');
-    interpreter.run(_inputImage.buffer.asUint8List(),
-        _outputBuffer.getBuffer().asUint8List());
+
+    // test
+
+    // ImageProcessor ip = new ImageProcessorBuilder()
+    //     .add(ResizeOp(28, 28, ResizeMethod.BILINEAR))
+    //     .build();
+    // TensorImage ti = TensorImage.fromFile(fileIM);
+    // print(ti.buffer.asUint8List().length);
+    // TensorImage ti2 = ip.process(ti);
+    // print(ti2.buffer.asUint8List().length);
+    // TensorBuffer tb =
+    //     TensorBuffer.createFixedSize([28, 28, 4], TfLiteType.uint8);
+    // tb.loadBuffer(fileIM.readAsBytesSync().buffer);
+    // TensorImage ti3 = TensorImage.fromTensorBuffer(tb);
+    // print(ti3.buffer.asUint8List().length);
+
+    // end test
+    print('input size: ${_inputImage.buffer.asUint8List().length}');
+    print('output size: ${_outputBuffer.getBuffer().asUint8List().length}');
+    // interpreter.run(_inputImage.buffer.asUint8List(), _outputBuffer.getBuffer().asUint8List());
+    interpreter.run(
+        image.getBytes(), TensorBuffer.createFixedSize([20], TfLiteType.uint8));
     final run = DateTime.now().millisecondsSinceEpoch - runs;
 
     print('Time to run inference: $run ms');
@@ -232,9 +263,9 @@ class _DoodlePageState extends State<DoodlePage> {
   }
 
   void _predict(File img) async {
-    im.Image imageInput = im.decodeImage(img.readAsBytesSync())!;
+    im.Image imageInput = im.decodeImage(await img.readAsBytes())!;
     print('imageInput: ${imageInput.length}');
-    var pred = await predict(imageInput);
+    var pred = await predict(imageInput, img);
     print('prediction: $pred');
 
     setState(() {});
@@ -355,10 +386,28 @@ class _DoodlePageState extends State<DoodlePage> {
       height: kModelInputSize,
     );
 
+    //test
+    im.Image? dd = im.decodeImage(pngUint8List);
+    im.Image? cc =
+        im.copyResize(dd!, width: kModelInputSize, height: kModelInputSize);
+    print('bytes length: ${cc.getBytes().length}');
+    print('rgba length: ${cc.getBytes(format: im.Format.rgba).length}');
+    print('rgb length: ${cc.getBytes(format: im.Format.rgb).length}');
+    Image cd = Image.memory(cc.getBytes(format: im.Format.rgba));
+    print('cd: $cd');
+    // im.Image? imImage2 = im.decodeImage(pngUint32List);
+    // im.Image resizedImage2 = im.copyResize(
+    //   imImage2!,
+    //   width: kModelInputSize,
+    //   height: kModelInputSize,
+    // );
+    //endtest
+
     Directory? docsDir = await pp.getExternalStorageDirectory();
-    // print(docsDir!.path);
-    File('${docsDir!.path}/a.png').writeAsBytes(im.encodePng(resizedImage));
-    // print(im.encodePng(resizedImage));
+    // File('${docsDir!.path}/a.png').writeAsBytes(im.encodePng(resizedImage));
+    File('${docsDir!.path}/a.txt').writeAsString(
+        (Uint8List.fromList(cc.getBytes(format: im.Format.rgba)).toString()));
+    File('${docsDir.path}/a.png').writeAsBytes(im.encodePng(cc));
 
     // Finally, we can return our the prediction we will perform over that
     // resized image
