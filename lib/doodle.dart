@@ -82,7 +82,7 @@ class _DoodlePageState extends State<DoodlePage> {
   String modelName = 'my_tflite_model.tflite';
 
   NormalizeOp preProcessNormalizeOp = NormalizeOp(0, 1);
-  NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 1);
+  NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 255);
 
   @override
   void initState() {
@@ -184,29 +184,29 @@ class _DoodlePageState extends State<DoodlePage> {
     // File('${docsDir!.path}/b.png').writeAsBytes(im.encodePng(image));
     // var img = File('${docsDir.path}/b.png');
     // im.Image a = im.decodePng(img.readAsBytesSync())!;
-    print('a channels: ${image.channels}');
+    // print('a channels: ${image.channels}');
     // print('a data: ${image.data}');
-    print('a data length: ${image.data.length}');
-    print('a length in bytes: ${image.getBytes().lengthInBytes}');
+    // print('a data length: ${image.data.length}');
+    // print('a length in bytes: ${image.getBytes().lengthInBytes}');
     _inputImage.loadImage(image);
-    print(_inputImage.buffer.asFloat32List().length);
-    print(_inputImage.buffer.asFloat32List().lengthInBytes);
+    // print(_inputImage.buffer.asFloat32List().length);
+    // print(_inputImage.buffer.asFloat32List().lengthInBytes);
     // im.Image? b = im.decodePng(image.getBytes(format: im.Format.rgba));
 
-    print(
-        'before preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.asUint8List().length}');
+    // print(
+    //     'before preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.asUint8List().length}');
     _inputImage = _preProcess();
-    print(
-        'after preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.asUint8List().length}');
+    // print(
+    //     'after preprocess: ${_inputImage.height} ${_inputImage.width} ${_inputImage.buffer.asUint8List().length}');
     final pre = DateTime.now().millisecondsSinceEpoch - pres;
 
     print('Time to load image: $pre ms');
 
     final runs = DateTime.now().millisecondsSinceEpoch;
 
-    print('output buffer length: ${_outputBuffer.buffer.lengthInBytes}');
-    print('input tensors: ${interpreter.getInputTensors()}');
-    print('output tensors: ${interpreter.getOutputTensors()}');
+    // print('output buffer length: ${_outputBuffer.buffer.lengthInBytes}');
+    // print('input tensors: ${interpreter.getInputTensors()}');
+    // print('output tensors: ${interpreter.getOutputTensors()}');
 
     // test
 
@@ -224,18 +224,49 @@ class _DoodlePageState extends State<DoodlePage> {
     // print(ti3.buffer.asUint8List().length);
 
     // end test
-    print('input size: ${_inputImage.buffer.asUint8List().length}');
-    print('output size: ${_outputBuffer.getBuffer().asUint8List().length}');
+    // print('input size: ${_inputImage.buffer.asUint8List().length}');
+    // print('output size: ${_outputBuffer.getBuffer().asUint8List().length}');
     // interpreter.run(_inputImage.buffer.asUint8List(), _outputBuffer.getBuffer().asUint8List());
-    interpreter.run(
-        image.getBytes(), TensorBuffer.createFixedSize([20], TfLiteType.uint8));
+
+    Uint8List manadd = Uint8List(kModelInputSize * kModelInputSize * 4);
+    int i = 0;
+    int j = 0;
+    while (i < manadd.length) {
+      if (i > 0 && (i + 1) % 4 == 0) {
+        manadd[i] = 0;
+      } else {
+        manadd[i] = _inputImage.buffer.asUint8List()[j];
+        j++;
+      }
+      i++;
+    }
+    Directory? docsDir = await pp.getExternalStorageDirectory();
+    File('${docsDir!.path}/a.txt').writeAsString(
+        image.getBytes(format: im.Format.rgba).toList().toString());
+    File('${docsDir.path}/b.txt')
+        .writeAsString(_inputImage.buffer.asUint8List().toString());
+    File('${docsDir.path}/c.txt').writeAsString(manadd.toString());
+
+    // File('${docsDir.path}/d.txt')
+    //     .writeAsString(interpreter.getInputTensors()[0].data.toString());
+
+    TensorBuffer out = TensorBuffer.createFixedSize([1, 20], TfLiteType.uint8);
+
+    interpreter.run(manadd, out);
+
     final run = DateTime.now().millisecondsSinceEpoch - runs;
 
     print('Time to run inference: $run ms');
 
-    Map<String, double> labeledProb = TensorLabel.fromList(
-            labels, _probabilityProcessor.process(_outputBuffer))
-        .getMapWithFloatValue();
+    // Map<String, double> labeledProb = TensorLabel.fromList(
+    //         labels, _probabilityProcessor.process(_outputBuffer))
+    //     .getMapWithFloatValue();
+
+    Map<String, double> labeledProb =
+        TensorLabel.fromList(labels, _probabilityProcessor.process(out))
+            .getMapWithFloatValue();
+
+    print(labeledProb);
     final pred = getTopProbability(labeledProb);
 
     return Category(pred.key, pred.value);
@@ -390,11 +421,11 @@ class _DoodlePageState extends State<DoodlePage> {
     im.Image? dd = im.decodeImage(pngUint8List);
     im.Image? cc =
         im.copyResize(dd!, width: kModelInputSize, height: kModelInputSize);
-    print('bytes length: ${cc.getBytes().length}');
-    print('rgba length: ${cc.getBytes(format: im.Format.rgba).length}');
-    print('rgb length: ${cc.getBytes(format: im.Format.rgb).length}');
+    // print('bytes length: ${cc.getBytes().length}');
+    // print('rgba length: ${cc.getBytes(format: im.Format.rgba).length}');
+    // print('rgb length: ${cc.getBytes(format: im.Format.rgb).length}');
     Image cd = Image.memory(cc.getBytes(format: im.Format.rgba));
-    print('cd: $cd');
+    // print('cd: $cd');
     // im.Image? imImage2 = im.decodeImage(pngUint32List);
     // im.Image resizedImage2 = im.copyResize(
     //   imImage2!,
