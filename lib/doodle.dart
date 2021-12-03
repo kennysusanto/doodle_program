@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -175,7 +176,7 @@ class _DoodlePageState extends State<DoodlePage> {
         .process(_inputImage);
   }
 
-  Future<Category> predict(im.Image image, File fileIM) async {
+  Future<Category?> predict(im.Image image, File fileIM) async {
     final pres = DateTime.now().millisecondsSinceEpoch;
     _inputImage = TensorImage(_inputType);
     // _inputImage.loadImage(image); ini main
@@ -228,31 +229,69 @@ class _DoodlePageState extends State<DoodlePage> {
     // print('output size: ${_outputBuffer.getBuffer().asUint8List().length}');
     // interpreter.run(_inputImage.buffer.asUint8List(), _outputBuffer.getBuffer().asUint8List());
 
-    Uint8List manadd = Uint8List(kModelInputSize * kModelInputSize * 4);
+    // Uint8List manadd = Uint8List(kModelInputSize * kModelInputSize * 4);
+    // int i = 0;
+    // int j = 0;
+    // while (i < manadd.length) {
+    //   if (i > 0 && (i + 1) % 4 == 0) {
+    //     manadd[i] = 255;
+    //   } else {
+    //     manadd[i] = _inputImage.buffer.asUint8List()[j];
+    //     j++;
+    //   }
+    //   i++;
+    // }
+
+    // Uint32List manadd2 = Uint32List(kModelInputSize * kModelInputSize);
+    // i = 0;
+    // j = 0;
+    // while (i < manadd2.length) {
+    //   if (i > 0 && (i + 1) % 4 == 0) {
+    //     manadd[i] = 255;
+    //   } else {
+    //     manadd[i] = _inputImage.buffer.asUint8List()[j];
+    //     j++;
+    //   }
+    //   i++;
+    // }
+
+    List manadd1 = List.generate(1, (index) => 0);
+    List manadd2 = List.generate(kModelInputSize, (index) => 0);
     int i = 0;
-    int j = 0;
-    while (i < manadd.length) {
-      if (i > 0 && (i + 1) % 4 == 0) {
-        manadd[i] = 0;
-      } else {
-        manadd[i] = _inputImage.buffer.asUint8List()[j];
+    while (i < manadd2.length) {
+      int j = 0;
+      List manadd3 = List.generate(kModelInputSize, (index) => 0);
+      while (j < manadd3.length) {
+        List manadd4 = List.generate(1, (index) => 0);
+        int ctr = (i + 1) * (j + 1) + 3;
+        int a = _inputImage.buffer.asUint8List()[ctr];
+        manadd4[0] = a.toDouble();
+        manadd3[j] = manadd4;
         j++;
       }
+      manadd2[i] = manadd3;
       i++;
     }
+    manadd1[0] = manadd2;
+
     Directory? docsDir = await pp.getExternalStorageDirectory();
     File('${docsDir!.path}/a.txt').writeAsString(
         image.getBytes(format: im.Format.rgba).toList().toString());
     File('${docsDir.path}/b.txt')
-        .writeAsString(_inputImage.buffer.asUint8List().toString());
-    File('${docsDir.path}/c.txt').writeAsString(manadd.toString());
+        .writeAsString(_inputImage.buffer.asUint32List().toString());
+    File('${docsDir.path}/c.txt').writeAsString(manadd1.toString());
+    File('${docsDir.path}/da_outputbuffer.txt')
+        .writeAsString(_outputBuffer.getBuffer().asUint8List().toString());
 
     // File('${docsDir.path}/d.txt')
     //     .writeAsString(interpreter.getInputTensors()[0].data.toString());
 
     TensorBuffer out = TensorBuffer.createFixedSize([1, 20], TfLiteType.uint8);
 
-    interpreter.run(manadd, out);
+    interpreter.run(manadd1, out.getBuffer());
+
+    File('${docsDir.path}/db_outbuffer.txt')
+        .writeAsString(out.getBuffer().asUint8List().toString());
 
     final run = DateTime.now().millisecondsSinceEpoch - runs;
 
@@ -333,6 +372,7 @@ class _DoodlePageState extends State<DoodlePage> {
           point.dy > containerPos.dy) {
         // print(point);
         stroke.add(point);
+        // print('points increased ${strokes.length}, ${stroke.length}');
         strokes[c] = stroke;
       }
     });
