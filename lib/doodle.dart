@@ -307,7 +307,11 @@ class _DoodlePageState extends State<DoodlePage> {
 
     print(labeledProb);
     final pred = getTopProbability(labeledProb);
-
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('${pred.key} (${pred.value})'),
+      duration: const Duration(milliseconds: 1000),
+    ));
     return Category(pred.key, pred.value);
   }
 
@@ -457,46 +461,70 @@ class _DoodlePageState extends State<DoodlePage> {
       height: kModelInputSize,
     );
 
-    //test
-    im.Image? dd = im.decodeImage(pngUint8List);
-    im.Image? cc =
-        im.copyResize(dd!, width: kModelInputSize, height: kModelInputSize);
-    // print('bytes length: ${cc.getBytes().length}');
-    // print('rgba length: ${cc.getBytes(format: im.Format.rgba).length}');
-    // print('rgb length: ${cc.getBytes(format: im.Format.rgb).length}');
-    Image cd = Image.memory(cc.getBytes(format: im.Format.rgba));
-    // print('cd: $cd');
-    // im.Image? imImage2 = im.decodeImage(pngUint32List);
-    // im.Image resizedImage2 = im.copyResize(
-    //   imImage2!,
-    //   width: kModelInputSize,
-    //   height: kModelInputSize,
-    // );
-    //endtest
+    // algo untuk draw di pixel2 sekitar path dan biarin path nya jadi hitam,
+    // ikutin contoh dataset di colab
 
+    // target nya kita manipulasi di resizedImage aja karena sudah di resize jadi 28x28
+
+    im.Image edittedResizedImage = resizedImage;
+    List<List<int>> whites = [];
+    // list all white pixels
+    for (var i = 0; i < resizedImage.height; i++) {
+      for (var j = 0; j < resizedImage.width; j++) {
+        // check if current pixel has color (not black)
+        if (resizedImage.getPixel(i, j) > 4284769380) {
+          List<int> p = [i, j];
+          whites.add(p);
+        }
+      }
+    }
+    // draw all white pixels to black and surrounding pixels to white
+    for (var i = 0; i < whites.length; i++) {
+      int x = whites[i][0];
+      int y = whites[i][1];
+      int a = resizedImage.getPixel(x, y); // get color
+
+      // set the surrounding pixels with the pixel's color
+      // set left pixel's color
+      setLeftPixel(edittedResizedImage, x, y, a);
+      // if (x - 1 >= 0 && resizedImage.getPixel(x - 1, y) < 4294638330) {
+      //   edittedResizedImage.setPixel(x - 1, y, a);
+      // }
+      // set right pixel's color
+      setRightPixel(edittedResizedImage, x, y, a);
+      // if (x + 1 <= 27 && resizedImage.getPixel(x + 1, y) < 4294638330) {
+      //   edittedResizedImage.setPixel(x + 1, y, a);
+      // }
+      // set above pixel's color
+      setAbovePixel(edittedResizedImage, x, y, a);
+      // if (y - 1 >= 0 && resizedImage.getPixel(x, y - 1) < 4294638330) {
+      //   edittedResizedImage.setPixel(x, y - 1, a);
+      // }
+      // set below pixel's color
+      setBelowPixel(edittedResizedImage, x, y, a);
+      // if (y + 1 <= 27 && resizedImage.getPixel(x, y + 1) < 4294638330) {
+      //   edittedResizedImage.setPixel(x, y + 1, a);
+      // }
+      edittedResizedImage.setPixel(x, y, 4278190080);
+      // 255 0 0 0 = 4278190080 #https://cryptii.com/pipes/integer-converter
+      // 255 100 100 100 = 4284769380
+      // 255 250 250 250 = 4294638330
+
+    }
     Directory? docsDir = await pp.getExternalStorageDirectory();
     // File('${docsDir!.path}/a.png').writeAsBytes(im.encodePng(resizedImage));
-    File('${docsDir!.path}/a.txt').writeAsString(
-        (Uint8List.fromList(cc.getBytes(format: im.Format.rgba)).toString()));
-    File('${docsDir.path}/a.png').writeAsBytes(im.encodePng(cc));
+    // File('${docsDir!.path}/a.txt').writeAsString(
+    //     (Uint8List.fromList(edittedResizedImage.getBytes(format: im.Format.rgba))
+    //         .toString()));
+    File('${docsDir!.path}/a.png')
+        .writeAsBytes(im.encodePng(edittedResizedImage));
 
     // Finally, we can return our the prediction we will perform over that
     // resized image
     imGen = Image.memory(pngUint8List);
-    // var a = imageToByteListUint82(resizedImage, 28);
-    // var b = Bitmap.fromHeadless(28, 28, a);
-    // ui.Image c = await b.buildImage();
-    // final d = await c.toByteData(format: ui.ImageByteFormat.png);
-    // Uint8List e = d!.buffer.asUint8List();
     var bytes = await File('${docsDir.path}/a.png').readAsBytes();
 
     imGen2 = Image.memory(bytes);
-    // imGen2 = (await decodeImageFromList(a)) as Image;
-
-    // var c = im.decodePng(a);
-    // print(a);
-    // Image b = Image.memory(imageToByteListUint82(c!, 28));
-    // imGen2 = b;
     setState(() {
       imgAva = true;
     });
@@ -508,6 +536,30 @@ class _DoodlePageState extends State<DoodlePage> {
     _predict(File('${docsDir.path}/a.png'));
 
     return null;
+  }
+
+  void setLeftPixel(im.Image ima, int x, int y, int color) {
+    if (x - 1 >= 0 && ima.getPixel(x - 1, y) < 4284769380) {
+      ima.setPixel(x - 1, y, color);
+    }
+  }
+
+  void setRightPixel(im.Image ima, int x, int y, int color) {
+    if (x + 1 <= 27 && ima.getPixel(x + 1, y) < 4284769380) {
+      ima.setPixel(x + 1, y, color);
+    }
+  }
+
+  void setAbovePixel(im.Image ima, int x, int y, int color) {
+    if (y - 1 >= 0 && ima.getPixel(x, y - 1) < 4284769380) {
+      ima.setPixel(x, y - 1, color);
+    }
+  }
+
+  void setBelowPixel(im.Image ima, int x, int y, int color) {
+    if (y + 1 <= 27 && ima.getPixel(x, y + 1) < 4284769380) {
+      ima.setPixel(x, y + 1, color);
+    }
   }
 
   Uint8List imageToByteListFloat32(
