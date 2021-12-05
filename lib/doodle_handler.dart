@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart' as pp;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
@@ -20,6 +22,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
   List keywords = [];
   List labels = [];
   List labels2 = [];
+  List allStrokes = [];
 
   void send() async {
     SchedulerBinding.instance!.addPostFrameCallback((_) async {
@@ -51,9 +54,12 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         } else if (res[0] == false) {
           wrongs.add(res[1]);
         }
+        allStrokes.add(res);
       }
       print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
-
+      Directory? docsDir = await pp.getExternalStorageDirectory();
+      File('${docsDir!.path}/allStrokes.txt')
+          .writeAsString(allStrokes.toString());
       Navigator.of(context).pop();
     });
   }

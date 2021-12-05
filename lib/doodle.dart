@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
@@ -15,6 +16,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'dart:math';
 import 'package:collection/collection.dart';
+import 'dart:convert';
 
 class DoodlePage extends StatefulWidget {
   final String keyword;
@@ -28,8 +30,8 @@ class DoodlePage extends StatefulWidget {
 }
 
 class _DoodlePageState extends State<DoodlePage> {
-  List<List<Offset>> strokes = [];
-  List<Offset> stroke = [];
+  List<List<List<dynamic>>> strokes = [];
+  List<List<dynamic>> stroke = [];
   List<int> imageDataInt = List.generate(28 * 28, (_) => 0);
   Uint8List imageDataUInt8 = Uint8List(28 * 28);
   int c = 0;
@@ -44,10 +46,12 @@ class _DoodlePageState extends State<DoodlePage> {
   GlobalKey repaintBoundaryKey = GlobalKey();
   GlobalKey containerImageKey = GlobalKey();
   GlobalKey containerImageKey2 = GlobalKey();
+  GlobalKey rowTextKey = GlobalKey();
   // Image imGen = const Image(
   //     image: NetworkImage(
   //   'https://pixabay.com/images/id-49520/',
   // ));
+  String _predkey = '';
 
   Image imGen = const Image(
       image: NetworkImage(
@@ -59,6 +63,8 @@ class _DoodlePageState extends State<DoodlePage> {
   ));
 
   bool imgAva = false;
+  late Timer _timer;
+  int _start = globals.timerTime;
 
   // tflite_flutter package & tflite_flutter_helper package
 
@@ -74,7 +80,7 @@ class _DoodlePageState extends State<DoodlePage> {
 
   final String _labelsFileName = 'assets/labels2.txt';
 
-  final int _labelsLength = 20;
+  final int _labelsLength = globals.timerTime;
 
   late var _probabilityProcessor;
 
@@ -93,6 +99,7 @@ class _DoodlePageState extends State<DoodlePage> {
     super.initState();
     loadModel();
     loadLabels();
+    startTimer();
     setState(() {});
   }
 
@@ -106,6 +113,25 @@ class _DoodlePageState extends State<DoodlePage> {
         errorWidget: (context, url, error) => new Icon(Icons.error),
       );
     }
+  }
+
+  void startTimer() {
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+      (Timer timer) {
+        if (_start == 0) {
+          setState(() {
+            timer.cancel();
+          });
+          Navigator.pop(context, [false, strokes]);
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
   }
 
   // Future<List?> classifyImage(Uint8List imgBin) async {
@@ -307,6 +333,7 @@ class _DoodlePageState extends State<DoodlePage> {
 
     print(labeledProb);
     final pred = getTopProbability(labeledProb);
+    _predkey += ', ${pred.key}';
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${pred.key} (${pred.value})'),
@@ -354,7 +381,7 @@ class _DoodlePageState extends State<DoodlePage> {
     setState(() {
       // dl.addFirstPoint(point);
       stroke = [];
-      stroke.add(point);
+      stroke.add([point, _start]);
       strokes.add(stroke);
     });
   }
@@ -375,7 +402,8 @@ class _DoodlePageState extends State<DoodlePage> {
           point.dx > containerPos.dx &&
           point.dy > containerPos.dy) {
         // print(point);
-        stroke.add(point);
+        List p = [point, _start];
+        stroke.add(p);
         // print('points increased ${strokes.length}, ${stroke.length}');
         strokes[c] = stroke;
       }
@@ -399,7 +427,15 @@ class _DoodlePageState extends State<DoodlePage> {
     setState(() {});
   }
 
-  Future<List?> processCanvasPoints(List<List<Offset>> strokes) async {
+  Future<List?> processCanvasPoints(List<List<List<dynamic>>> strokes) async {
+    RenderBox box =
+        repaintBoundaryKey.currentContext!.findRenderObject() as RenderBox;
+    Offset position = box.localToGlobal(Offset.zero);
+    final dxFromLeft = position.dx;
+    final dyFromTop = position.dy;
+    RenderBox boxRowText =
+        rowTextKey.currentContext!.findRenderObject() as RenderBox;
+    double boxRowTextHeight = boxRowText.size.height;
     final canvasSizeWithPadding = kCanvasSize + (2 * kCanvasInnerOffset);
     final canvasOffset = Offset(kCanvasInnerOffset, kCanvasInnerOffset);
     final recorder = ui.PictureRecorder();
@@ -413,14 +449,19 @@ class _DoodlePageState extends State<DoodlePage> {
 
     Path allPaths = Path();
     for (var i = 0; i < strokes.length; i++) {
-      List<Offset> stroke = strokes[i];
+      List<List<dynamic>> stroke = strokes[i];
       for (var j = 0; j < stroke.length; j++) {
+        List<dynamic> strokeSingle = stroke[j];
+        Offset strokeOffset = strokeSingle[0];
+        int timeStamp = strokeSingle[1];
         if (j == 0) {
-          Offset p = Offset(stroke[j].dx, stroke[j].dy - kCanvasInnerOffset);
-          allPaths.moveTo(p.dx, p.dy);
+          Offset p =
+              Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
+          allPaths.moveTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
         } else {
-          Offset p = Offset(stroke[j].dx, stroke[j].dy - kCanvasInnerOffset);
-          allPaths.lineTo(p.dx, p.dy);
+          Offset p =
+              Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
+          allPaths.lineTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
         }
       }
     }
@@ -472,7 +513,7 @@ class _DoodlePageState extends State<DoodlePage> {
     for (var i = 0; i < resizedImage.height; i++) {
       for (var j = 0; j < resizedImage.width; j++) {
         // check if current pixel has color (not black)
-        if (resizedImage.getPixel(i, j) > 4284769380) {
+        if (resizedImage.getPixel(i, j) > 4278848010) {
           List<int> p = [i, j];
           whites.add(p);
         }
@@ -486,22 +527,22 @@ class _DoodlePageState extends State<DoodlePage> {
 
       // set the surrounding pixels with the pixel's color
       // set left pixel's color
-      setLeftPixel(edittedResizedImage, x, y, a);
+      setLeftPixel(edittedResizedImage, x, y, a, whites);
       // if (x - 1 >= 0 && resizedImage.getPixel(x - 1, y) < 4294638330) {
       //   edittedResizedImage.setPixel(x - 1, y, a);
       // }
       // set right pixel's color
-      setRightPixel(edittedResizedImage, x, y, a);
+      setRightPixel(edittedResizedImage, x, y, a, whites);
       // if (x + 1 <= 27 && resizedImage.getPixel(x + 1, y) < 4294638330) {
       //   edittedResizedImage.setPixel(x + 1, y, a);
       // }
       // set above pixel's color
-      setAbovePixel(edittedResizedImage, x, y, a);
+      setAbovePixel(edittedResizedImage, x, y, a, whites);
       // if (y - 1 >= 0 && resizedImage.getPixel(x, y - 1) < 4294638330) {
       //   edittedResizedImage.setPixel(x, y - 1, a);
       // }
       // set below pixel's color
-      setBelowPixel(edittedResizedImage, x, y, a);
+      setBelowPixel(edittedResizedImage, x, y, a, whites);
       // if (y + 1 <= 27 && resizedImage.getPixel(x, y + 1) < 4294638330) {
       //   edittedResizedImage.setPixel(x, y + 1, a);
       // }
@@ -509,6 +550,7 @@ class _DoodlePageState extends State<DoodlePage> {
       // 255 0 0 0 = 4278190080 #https://cryptii.com/pipes/integer-converter
       // 255 100 100 100 = 4284769380
       // 255 250 250 250 = 4294638330
+      // 255 10 10 10 = 4278848010
 
     }
     Directory? docsDir = await pp.getExternalStorageDirectory();
@@ -538,26 +580,40 @@ class _DoodlePageState extends State<DoodlePage> {
     return null;
   }
 
-  void setLeftPixel(im.Image ima, int x, int y, int color) {
-    if (x - 1 >= 0 && ima.getPixel(x - 1, y) < 4284769380) {
+  bool isPointABorder(List<int> p, List<List<int>> whites) {
+    Function deepEq = const DeepCollectionEquality().equals;
+    bool exist = false;
+    for (var i = 0; i < whites.length; i++) {
+      if (deepEq(whites[i], p)) {
+        exist = true;
+      }
+    }
+    return exist;
+  }
+
+  void setLeftPixel(im.Image ima, int x, int y, int color, List<List<int>> wh) {
+    if (x - 1 >= 0 && !isPointABorder([x - 1, y], wh)) {
       ima.setPixel(x - 1, y, color);
     }
   }
 
-  void setRightPixel(im.Image ima, int x, int y, int color) {
-    if (x + 1 <= 27 && ima.getPixel(x + 1, y) < 4284769380) {
+  void setRightPixel(
+      im.Image ima, int x, int y, int color, List<List<int>> wh) {
+    if (x + 1 <= 27 && !isPointABorder([x + 1, y], wh)) {
       ima.setPixel(x + 1, y, color);
     }
   }
 
-  void setAbovePixel(im.Image ima, int x, int y, int color) {
-    if (y - 1 >= 0 && ima.getPixel(x, y - 1) < 4284769380) {
+  void setAbovePixel(
+      im.Image ima, int x, int y, int color, List<List<int>> wh) {
+    if (y - 1 >= 0 && !isPointABorder([x, y - 1], wh)) {
       ima.setPixel(x, y - 1, color);
     }
   }
 
-  void setBelowPixel(im.Image ima, int x, int y, int color) {
-    if (y + 1 <= 27 && ima.getPixel(x, y + 1) < 4284769380) {
+  void setBelowPixel(
+      im.Image ima, int x, int y, int color, List<List<int>> wh) {
+    if (y + 1 <= 27 && !isPointABorder([x, y + 1], wh)) {
       ima.setPixel(x, y + 1, color);
     }
   }
@@ -632,6 +688,7 @@ class _DoodlePageState extends State<DoodlePage> {
   @override
   void dispose() {
     // closeTflite();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -695,7 +752,6 @@ class _DoodlePageState extends State<DoodlePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(widget.keyword),
                               Container(
                                 margin: EdgeInsets.only(left: 10),
                                 child: ElevatedButton(
@@ -717,6 +773,17 @@ class _DoodlePageState extends State<DoodlePage> {
                             ],
                           ),
                           Row(
+                              key: rowTextKey,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                    child: Text('Keyword: ${widget.keyword}')),
+                                Container(
+                                    child: Text('Time: ${_start.toString()}'))
+                              ]),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               RepaintBoundary(
                                   key: repaintBoundaryKey,
@@ -730,25 +797,28 @@ class _DoodlePageState extends State<DoodlePage> {
                                     height: imSize + (imPadding * 2),
                                     // CustomPaint widget will go here
                                   )),
-                              SizedBox(
-                                key: containerImageKey,
-                                child: FittedBox(
-                                  fit: BoxFit.fill,
-                                  child: _displayMedia(imGen),
-                                ),
-                                width: 280,
-                                height: 280,
-                              ),
+                              // SizedBox(
+                              //   key: containerImageKey,
+                              //   child: FittedBox(
+                              //     fit: BoxFit.fill,
+                              //     child: _displayMedia(imGen),
+                              //   ),
+                              //   width: 280,
+                              //   height: 280,
+                              // ),
                               SizedBox(
                                 key: containerImageKey2,
                                 child: FittedBox(
                                   fit: BoxFit.fill,
                                   child: _displayMedia(imGen2),
                                 ),
-                                width: 140,
-                                height: 140,
+                                width: 280,
+                                height: 280,
                               ),
                             ],
+                          ),
+                          Container(
+                            child: Text(_predkey),
                           )
                         ],
                       )),

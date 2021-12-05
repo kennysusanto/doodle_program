@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
         primarySwatch: Colors.blue,
+        fontFamily: 'Roboto',
       ),
       home: const MainMenu(),
     );
@@ -55,7 +56,7 @@ class _MainMenuState extends State<MainMenu> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Main Menu'),
+        title: const Text('Doodle v1.1'),
       ),
       body: Center(
           child: IntrinsicWidth(
@@ -63,23 +64,46 @@ class _MainMenuState extends State<MainMenu> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
+            Container(
               child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(DoodleHandlerRoute());
                   },
-                  child: const Text('New Game')),
+                  child: Container(
+                    padding: EdgeInsets.all(15),
+                    child: const Text(
+                      'New Game',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                  )),
             ),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(SettingsPageRoute());
-                },
-                child: const Text('Settings')),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(KeywordsPageRoute());
-                },
-                child: const Text('Show Keywords')),
+            Container(
+              margin: EdgeInsets.only(top: 8),
+              child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(SettingsPageRoute());
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(15),
+                    child: const Text(
+                      'Settings',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                  )),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 8),
+              child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(KeywordsPageRoute());
+                  },
+                  child: Container(
+                      padding: EdgeInsets.all(15),
+                      child: const Text(
+                        'Show Keywords',
+                        style: TextStyle(fontSize: 24),
+                      ))),
+            )
           ],
         ),
       )),

@@ -31,11 +31,13 @@ class MyCustomPainter extends CustomPainter {
     // }
     // print(dl);
     for (var i = 0; i < strokes.length; i++) {
-      List stroke = strokes[i];
+      List<List<dynamic>> stroke = strokes[i];
 
       Path subPath = Path();
       for (var j = 0; j < stroke.length; j++) {
-        Offset p = stroke[j];
+        List<dynamic> strokeSingle = stroke[j];
+        Offset strokeOffset = strokeSingle[0];
+        Offset p = strokeOffset;
         if (j == 0) {
           subPath.moveTo(p.dx, p.dy);
         } else {
