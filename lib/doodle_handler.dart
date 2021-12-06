@@ -45,7 +45,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       for (int i = 0; i < numOfRounds; i++) {
         final res = await Navigator.of(context)
             .push(DoodlePageRoute(keyword: _labels2List[rnglist.toList()[i]]));
-        print(res);
+        // print(res);
         if (res == null) {
           break;
         }
@@ -54,12 +54,42 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         } else if (res[0] == false) {
           wrongs.add(res[1]);
         }
-        allStrokes.add(res);
+        if (res[1].length > 0) {
+          // if there's stroke, if not then dont add
+          allStrokes.add(res);
+        }
       }
       print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
+
+      // ini data untuk retrain
+      // conform strokes to google dataset format [1, 784] white value 0 to 255
+      // ikutin algo di doodle.dart untuk create image
+      // todo disini
+
+      // ini data untuk di log
+      List whiteStrokes = [];
+      for (var i = 0; i < allStrokes.length; i++) {
+        List s = allStrokes[i][1][0];
+        List px = []; // x
+        List py = []; // y
+        List pt = []; // time
+        for (var j = 0; j < s.length; j++) {
+          List s2 = s[j];
+          Offset sOffset = s2[0];
+          double x = sOffset.dx;
+          double y = sOffset.dy;
+          double t = double.tryParse(s2[1].toString())!;
+
+          px.add(x);
+          py.add(y);
+          pt.add(t);
+        }
+        whiteStrokes.add([px, py, pt]);
+      }
+
       Directory? docsDir = await pp.getExternalStorageDirectory();
-      File('${docsDir!.path}/allStrokes.txt')
-          .writeAsString(allStrokes.toString());
+      File('${docsDir!.path}/whiteStrokes.txt')
+          .writeAsString(whiteStrokes.toString());
       Navigator.of(context).pop();
     });
   }

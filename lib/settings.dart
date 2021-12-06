@@ -171,16 +171,22 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Center(
+            child: IntrinsicWidth(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Rounds:'),
+              Text(
+                'Rounds:',
+                style: TextStyle(fontSize: 24),
+              ),
               Container(
                 margin: EdgeInsets.only(left: 10),
                 child: DropdownButton<String>(
+                  style: TextStyle(fontSize: 24),
                   value: roundsValue,
                   icon: const Icon(Icons.arrow_downward),
                   iconSize: 16,
@@ -195,7 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: value,
                       child: Text(value,
                           style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 24,
                               color: Theme.of(context).colorScheme.primary)),
                     );
                   }).toList(),
@@ -206,10 +212,14 @@ class _SettingsPageState extends State<SettingsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Timer:'),
+              Text(
+                'Timer:',
+                style: TextStyle(fontSize: 24),
+              ),
               Container(
                 margin: EdgeInsets.only(left: 10),
                 child: DropdownButton<String>(
+                  style: TextStyle(fontSize: 24),
                   value: timerValue,
                   icon: const Icon(Icons.arrow_downward),
                   iconSize: 16,
@@ -224,7 +234,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: value,
                       child: Text(value,
                           style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 24,
                               color: Theme.of(context).colorScheme.primary)),
                     );
                   }).toList(),
@@ -277,7 +287,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text('Cancel')),
+                    child: Container(
+                        padding: EdgeInsets.all(15),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 24),
+                        ))),
               ),
               Container(
                 margin: EdgeInsets.only(left: 5, right: 5),
@@ -288,7 +303,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         timerValue = '20';
                       });
                     },
-                    child: Text('Reset')),
+                    child: Container(
+                        padding: EdgeInsets.all(15),
+                        child: Text(
+                          'Reset',
+                          style: TextStyle(fontSize: 24),
+                        ))),
               ),
               Container(
                   margin: EdgeInsets.only(left: 5, right: 5),
@@ -329,11 +349,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
                         Navigator.of(context).pop();
                       },
-                      child: Text('Save'))),
+                      child: Container(
+                          padding: EdgeInsets.all(15),
+                          child: Text(
+                            'Save',
+                            style: TextStyle(fontSize: 24),
+                          )))),
             ],
           )
         ],
       ),
-    ));
+    )));
   }
 }

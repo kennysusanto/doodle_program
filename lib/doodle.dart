@@ -16,7 +16,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'dart:math';
 import 'package:collection/collection.dart';
-import 'dart:convert';
+import 'package:doodle/test_bit_converter.dart';
 
 class DoodlePage extends StatefulWidget {
   final String keyword;
@@ -35,8 +35,6 @@ class _DoodlePageState extends State<DoodlePage> {
   List<int> imageDataInt = List.generate(28 * 28, (_) => 0);
   Uint8List imageDataUInt8 = Uint8List(28 * 28);
   int c = 0;
-  late List _outputs;
-  late File _image;
   final imSize = 200;
   final imPadding = 40;
   final int kCanvasSize = 200;
@@ -47,10 +45,6 @@ class _DoodlePageState extends State<DoodlePage> {
   GlobalKey containerImageKey = GlobalKey();
   GlobalKey containerImageKey2 = GlobalKey();
   GlobalKey rowTextKey = GlobalKey();
-  // Image imGen = const Image(
-  //     image: NetworkImage(
-  //   'https://pixabay.com/images/id-49520/',
-  // ));
   String _predkey = '';
 
   Image imGen = const Image(
@@ -64,7 +58,7 @@ class _DoodlePageState extends State<DoodlePage> {
 
   bool imgAva = false;
   late Timer _timer;
-  int _start = globals.timerTime;
+  num _start = double.tryParse(globals.timerTime.toString())!;
 
   // tflite_flutter package & tflite_flutter_helper package
 
@@ -91,6 +85,8 @@ class _DoodlePageState extends State<DoodlePage> {
   NormalizeOp preProcessNormalizeOp = NormalizeOp(0, 1);
   NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 255);
 
+  List preds = [];
+
   @override
   void initState() {
     // TODO: implement initState
@@ -116,9 +112,9 @@ class _DoodlePageState extends State<DoodlePage> {
   }
 
   void startTimer() {
-    const oneSec = Duration(seconds: 1);
+    const durValue = Duration(milliseconds: 100);
     _timer = Timer.periodic(
-      oneSec,
+      durValue,
       (Timer timer) {
         if (_start == 0) {
           setState(() {
@@ -127,11 +123,27 @@ class _DoodlePageState extends State<DoodlePage> {
           Navigator.pop(context, [false, strokes]);
         } else {
           setState(() {
-            _start--;
+            _start -= double.tryParse(
+                (durValue.inMilliseconds / 1000).toStringAsFixed(3))!;
+            _start = num.tryParse(_start.toStringAsFixed(1))!;
           });
         }
       },
     );
+  }
+
+  num round(n) {
+    num res = n;
+    String fixed = n.toStringAsFixed(3);
+    int dot = fixed.indexOf('.');
+    String charAfterDot = fixed[dot + 1];
+    int nCharAfterDot = int.tryParse(charAfterDot)!;
+    if (nCharAfterDot >= 5) {
+      res += (10 - nCharAfterDot) / 10;
+    } else if (nCharAfterDot <= 4) {
+      res += (0 - nCharAfterDot) / 10;
+    }
+    return res;
   }
 
   // Future<List?> classifyImage(Uint8List imgBin) async {
@@ -332,8 +344,11 @@ class _DoodlePageState extends State<DoodlePage> {
             .getMapWithFloatValue();
 
     print(labeledProb);
-    final pred = getTopProbability(labeledProb);
-    _predkey += ', ${pred.key}';
+    // final pred = getTopProbability(labeledProb);
+    final pred = getTopProbabilityUnique(labeledProb, preds);
+    preds.add(pred.key);
+    _predkey = preds.toString();
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${pred.key} (${pred.value})'),
@@ -353,6 +368,18 @@ class _DoodlePageState extends State<DoodlePage> {
     return pq.first;
   }
 
+  MapEntry<String, double> getTopProbabilityUnique(
+      Map<String, double> labeledProb, List preds) {
+    var pq = PriorityQueue<MapEntry<String, double>>(compare);
+    pq.addAll(labeledProb.entries);
+    var res = pq.first;
+    while (preds.contains(res.key)) {
+      res = pq.removeFirst();
+    }
+
+    return res;
+  }
+
   int compare(MapEntry<String, double> e1, MapEntry<String, double> e2) {
     if (e1.value > e2.value) {
       return -1;
@@ -366,9 +393,14 @@ class _DoodlePageState extends State<DoodlePage> {
   void _predict(File img) async {
     im.Image imageInput = im.decodeImage(await img.readAsBytes())!;
     print('imageInput: ${imageInput.length}');
-    var pred = await predict(imageInput, img);
+    Category? pred = await predict(imageInput, img);
     print('prediction: $pred');
-
+    // print('${pred!.label} ${widget.keyword}');
+    if (pred!.label.toString().trim() == widget.keyword.toString().trim()) {
+      print("ANDA BENARRRR KELUARRRRR");
+      _timer.cancel();
+      Navigator.pop(context, [true, strokes]);
+    }
     setState(() {});
   }
 
@@ -453,7 +485,7 @@ class _DoodlePageState extends State<DoodlePage> {
       for (var j = 0; j < stroke.length; j++) {
         List<dynamic> strokeSingle = stroke[j];
         Offset strokeOffset = strokeSingle[0];
-        int timeStamp = strokeSingle[1];
+        double timeStamp = strokeSingle[1];
         if (j == 0) {
           Offset p =
               Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
@@ -478,9 +510,13 @@ class _DoodlePageState extends State<DoodlePage> {
     canvas.drawPath(
         allPaths,
         Paint()
-          ..color = Colors.white
+          ..shader = ui.Gradient.linear(
+              Offset(0, 0),
+              Offset(canvasSizeWithPadding, canvasSizeWithPadding),
+              [Colors.white, Colors.grey.shade100])
+          // ..color = Colors.white
           ..style = ui.PaintingStyle.stroke
-          ..strokeWidth = 10);
+          ..strokeWidth = 9);
 
     // At this point our virtual canvas is ready and we can export an image from it
     final picture = recorder.endRecording();
@@ -510,10 +546,11 @@ class _DoodlePageState extends State<DoodlePage> {
     im.Image edittedResizedImage = resizedImage;
     List<List<int>> whites = [];
     // list all white pixels
+    num u32Black = u8tou32([255, 0, 0, 0]);
     for (var i = 0; i < resizedImage.height; i++) {
       for (var j = 0; j < resizedImage.width; j++) {
         // check if current pixel has color (not black)
-        if (resizedImage.getPixel(i, j) > 4278848010) {
+        if (resizedImage.getPixel(i, j) > u32Black) {
           List<int> p = [i, j];
           whites.add(p);
         }
@@ -546,7 +583,7 @@ class _DoodlePageState extends State<DoodlePage> {
       // if (y + 1 <= 27 && resizedImage.getPixel(x, y + 1) < 4294638330) {
       //   edittedResizedImage.setPixel(x, y + 1, a);
       // }
-      edittedResizedImage.setPixel(x, y, 4278190080);
+      edittedResizedImage.setPixel(x, y, int.parse(u32Black.toString()));
       // 255 0 0 0 = 4278190080 #https://cryptii.com/pipes/integer-converter
       // 255 100 100 100 = 4284769380
       // 255 250 250 250 = 4294638330
@@ -593,28 +630,72 @@ class _DoodlePageState extends State<DoodlePage> {
 
   void setLeftPixel(im.Image ima, int x, int y, int color, List<List<int>> wh) {
     if (x - 1 >= 0 && !isPointABorder([x - 1, y], wh)) {
-      ima.setPixel(x - 1, y, color);
+      // klo overlap brarti darken
+      var c = ima.getPixel(x - 1, y);
+      if (c > u8tou32([255, 0, 0, 0]) &&
+          int.parse((c - u8tou32([255, 20, 20, 20])).toString()) >
+              u8tou32([255, 0, 0, 0])) {
+        // if not black, darken
+        ima.setPixel(
+            x - 1, y, int.parse((c - u8tou32([255, 20, 20, 20])).toString()));
+      } else {
+        // if black, set color
+        ima.setPixel(x - 1, y, color);
+      }
     }
   }
 
   void setRightPixel(
       im.Image ima, int x, int y, int color, List<List<int>> wh) {
     if (x + 1 <= 27 && !isPointABorder([x + 1, y], wh)) {
-      ima.setPixel(x + 1, y, color);
+      // klo overlap brarti darken
+      var c = ima.getPixel(x + 1, y);
+      if (c > u8tou32([255, 0, 0, 0]) &&
+          int.parse((c - u8tou32([255, 20, 20, 20])).toString()) >
+              u8tou32([255, 0, 0, 0])) {
+        // if not black, darken
+        ima.setPixel(
+            x + 1, y, int.parse((c - u8tou32([255, 20, 20, 20])).toString()));
+      } else {
+        // if black, set color
+        ima.setPixel(x + 1, y, color);
+      }
     }
   }
 
   void setAbovePixel(
       im.Image ima, int x, int y, int color, List<List<int>> wh) {
     if (y - 1 >= 0 && !isPointABorder([x, y - 1], wh)) {
-      ima.setPixel(x, y - 1, color);
+      // klo overlap brarti darken
+      var c = ima.getPixel(x, y - 1);
+      if (c > u8tou32([255, 0, 0, 0]) &&
+          int.parse((c - u8tou32([255, 20, 20, 20])).toString()) >
+              u8tou32([255, 0, 0, 0])) {
+        // if not black, darken
+        ima.setPixel(
+            x, y - 1, int.parse((c - u8tou32([255, 20, 20, 20])).toString()));
+      } else {
+        // if black, set color
+        ima.setPixel(x, y - 1, color);
+      }
     }
   }
 
   void setBelowPixel(
       im.Image ima, int x, int y, int color, List<List<int>> wh) {
     if (y + 1 <= 27 && !isPointABorder([x, y + 1], wh)) {
-      ima.setPixel(x, y + 1, color);
+      // klo overlap brarti darken
+      var c = ima.getPixel(x, y + 1);
+      if (c > u8tou32([255, 0, 0, 0]) &&
+          int.parse((c - u8tou32([255, 20, 20, 20])).toString()) >
+              u8tou32([255, 0, 0, 0])) {
+        // if not black, darken
+        ima.setPixel(
+            x, y + 1, int.parse((c - u8tou32([255, 20, 20, 20])).toString()));
+      } else {
+        // if black, set color
+        ima.setPixel(x, y + 1, color);
+      }
     }
   }
 
@@ -779,7 +860,8 @@ class _DoodlePageState extends State<DoodlePage> {
                                 Container(
                                     child: Text('Keyword: ${widget.keyword}')),
                                 Container(
-                                    child: Text('Time: ${_start.toString()}'))
+                                    child: Text(
+                                        'Time: ${_start.toStringAsFixed(1)}'))
                               ]),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
