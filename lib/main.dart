@@ -1,8 +1,12 @@
+import 'dart:io';
+
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'routes.dart';
+import 'package:doodle/globals.dart' as globals;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,21 +31,40 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Doodle',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
-      ),
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: createMaterialColor(globals.themeColor),
+          fontFamily: 'Roboto'),
       home: const MainMenu(),
     );
   }
+}
+
+MaterialColor createMaterialColor(Color color) {
+  List strengths = <double>[.05];
+  final swatch = <int, Color>{};
+  final int r = color.red, g = color.green, b = color.blue;
+
+  for (int i = 1; i < 10; i++) {
+    strengths.add(0.1 * i);
+  }
+  strengths.forEach((strength) {
+    final double ds = 0.5 - strength;
+    swatch[(strength * 1000).round()] = Color.fromRGBO(
+      r + ((ds < 0 ? r : (255 - r)) * ds).round(),
+      g + ((ds < 0 ? g : (255 - g)) * ds).round(),
+      b + ((ds < 0 ? b : (255 - b)) * ds).round(),
+      1,
+    );
+  });
+  return MaterialColor(color.value, swatch);
 }
 
 class MainMenu extends StatefulWidget {
@@ -52,11 +75,57 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
+  String pappName = '';
+  String ppackageName = '';
+  String pversion = '';
+  String pbuildNumber = '';
+
+  @override
+  void initState() {
+    super.initState();
+    checkInternet();
+    loadAppInfo();
+  }
+
+  void checkInternet() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        // print('connected');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Internet connection established!'),
+          duration: Duration(milliseconds: 1000),
+        ));
+      }
+    } on SocketException catch (_) {
+      // print('not connected');
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('No internet connection detected!'),
+        duration: Duration(milliseconds: 1000),
+      ));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Some features may not appear correctly...'),
+        duration: Duration(milliseconds: 1000),
+      ));
+    }
+  }
+
+  void loadAppInfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      pappName = packageInfo.appName;
+      ppackageName = packageInfo.packageName;
+      pversion = packageInfo.version;
+      pbuildNumber = packageInfo.buildNumber;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: globals.bgColor,
       appBar: AppBar(
-        title: const Text('Doodle v1.1'),
+        title: Text('$pappName v$pversion'),
       ),
       body: Center(
           child: IntrinsicWidth(
@@ -66,42 +135,79 @@ class _MainMenuState extends State<MainMenu> {
           children: [
             Container(
               child: ElevatedButton(
+                  style: ButtonStyle(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(globals.borderRad),
+                              side: BorderSide(color: globals.themeColor)))),
                   onPressed: () {
                     Navigator.of(context).push(DoodleHandlerRoute());
                   },
                   child: Container(
-                    padding: EdgeInsets.all(15),
-                    child: const Text(
+                    padding: EdgeInsets.all(globals.buttonPad),
+                    child: Text(
                       'New Game',
-                      style: TextStyle(fontSize: 24),
+                      style: TextStyle(fontSize: globals.buttonFontSize),
                     ),
                   )),
             ),
             Container(
               margin: EdgeInsets.only(top: 8),
               child: ElevatedButton(
+                  style: ButtonStyle(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(globals.borderRad),
+                              side: BorderSide(color: globals.themeColor)))),
                   onPressed: () {
                     Navigator.of(context).push(SettingsPageRoute());
                   },
                   child: Container(
-                    padding: EdgeInsets.all(15),
-                    child: const Text(
+                    padding: EdgeInsets.all(globals.buttonPad),
+                    child: Text(
                       'Settings',
-                      style: TextStyle(fontSize: 24),
+                      style: TextStyle(fontSize: globals.buttonFontSize),
                     ),
                   )),
             ),
             Container(
               margin: EdgeInsets.only(top: 8),
               child: ElevatedButton(
+                  style: ButtonStyle(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(globals.borderRad),
+                              side: BorderSide(color: globals.themeColor)))),
                   onPressed: () {
                     Navigator.of(context).push(KeywordsPageRoute());
                   },
                   child: Container(
-                      padding: EdgeInsets.all(15),
-                      child: const Text(
+                      padding: EdgeInsets.all(globals.buttonPad),
+                      child: Text(
                         'Show Keywords',
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontSize: globals.buttonFontSize),
+                      ))),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 8),
+              child: ElevatedButton(
+                  style: ButtonStyle(
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(globals.borderRad),
+                              side: BorderSide(color: globals.themeColor)))),
+                  onPressed: () {
+                    Navigator.of(context).push(PreviousDoodlesRoute());
+                  },
+                  child: Container(
+                      padding: EdgeInsets.all(globals.buttonPad),
+                      child: Text(
+                        'Previous Doodles',
+                        style: TextStyle(fontSize: globals.buttonFontSize),
                       ))),
             )
           ],

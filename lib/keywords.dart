@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:doodle/globals.dart' as globals;
 
 class KeywordsPage extends StatefulWidget {
   const KeywordsPage({Key? key}) : super(key: key);
@@ -32,25 +33,41 @@ class _KeywordsPageState extends State<KeywordsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: const Text('Keywords'),
+        ),
+        backgroundColor: globals.bgColor,
         body: Container(
             padding: const EdgeInsets.all(10),
-            child: ListView.builder(
-                itemCount: _keywords.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(_keywords[index]),
-                          duration: const Duration(milliseconds: 100),
-                        ));
-                      },
-                      child: Card(
-                        key: UniqueKey(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Text(_keywords[index]),
-                        ),
+            child: GridView.count(
+              childAspectRatio: 1.5,
+              crossAxisCount: 4,
+              children: List.generate(_keywords.length, (index) {
+                return Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(globals.borderRad),
+                      side: BorderSide(color: globals.themeColor)),
+                  color: globals.themeColor,
+                  key: UniqueKey(),
+                  child: InkWell(
+                    splashColor: globals.themeColorDarker,
+                    borderRadius: BorderRadius.circular(globals.borderRad),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(_keywords[index]),
+                        duration: const Duration(milliseconds: 100),
                       ));
-                })));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        _keywords[index],
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            )));
   }
 }

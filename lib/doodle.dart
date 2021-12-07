@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:doodle/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
@@ -397,8 +398,12 @@ class _DoodlePageState extends State<DoodlePage> {
     print('prediction: $pred');
     // print('${pred!.label} ${widget.keyword}');
     if (pred!.label.toString().trim() == widget.keyword.toString().trim()) {
-      print("ANDA BENARRRR KELUARRRRR");
+      num timeTaken = _start;
       _timer.cancel();
+      await Navigator.of(context).push(CorrectPageRoute(
+          akeyword: pred.label.toString(),
+          astrokes: strokes,
+          atimetaken: timeTaken));
       Navigator.pop(context, [true, strokes]);
     }
     setState(() {});
@@ -464,10 +469,10 @@ class _DoodlePageState extends State<DoodlePage> {
         repaintBoundaryKey.currentContext!.findRenderObject() as RenderBox;
     Offset position = box.localToGlobal(Offset.zero);
     final dxFromLeft = position.dx;
-    final dyFromTop = position.dy;
-    RenderBox boxRowText =
-        rowTextKey.currentContext!.findRenderObject() as RenderBox;
-    double boxRowTextHeight = boxRowText.size.height;
+    // final dyFromTop = position.dy;
+    // RenderBox boxRowText =
+    //     rowTextKey.currentContext!.findRenderObject() as RenderBox;
+    // double boxRowTextHeight = boxRowText.size.height;
     final canvasSizeWithPadding = kCanvasSize + (2 * kCanvasInnerOffset);
     final canvasOffset = Offset(kCanvasInnerOffset, kCanvasInnerOffset);
     final recorder = ui.PictureRecorder();
@@ -489,11 +494,13 @@ class _DoodlePageState extends State<DoodlePage> {
         if (j == 0) {
           Offset p =
               Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
-          allPaths.moveTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
+          // allPaths.moveTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
+          allPaths.moveTo(p.dx - dxFromLeft, p.dy);
         } else {
           Offset p =
               Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
-          allPaths.lineTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
+          // allPaths.lineTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
+          allPaths.lineTo(p.dx - dxFromLeft, p.dy);
         }
       }
     }
@@ -779,6 +786,9 @@ class _DoodlePageState extends State<DoodlePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(globals.borderRad)),
+          backgroundColor: globals.bgColor,
           title: const Text('Confirm Exit'),
           content: SingleChildScrollView(
             child: ListBody(
@@ -789,17 +799,41 @@ class _DoodlePageState extends State<DoodlePage> {
             ),
           ),
           actions: <Widget>[
-            ElevatedButton(
+            OutlinedButton(
+                style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(globals.borderRad),
+                            side: BorderSide(color: globals.themeColor))),
+                    side: MaterialStateProperty.all(
+                        BorderSide(color: globals.themeColor))),
                 onPressed: () {
                   Navigator.pop(context, 'Cancel');
                 },
-                child: Text('Cancel')),
+                child: Container(
+                    padding: EdgeInsets.all(globals.buttonPad),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(fontSize: globals.buttonFontSize),
+                    ))),
             ElevatedButton(
+                style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(globals.borderRad),
+                            side: BorderSide(color: globals.themeColor)))),
                 onPressed: () {
                   Navigator.pop(context, 'Confirm');
                   Navigator.of(context).pop();
                 },
-                child: Text('Confirm')),
+                child: Container(
+                    padding: EdgeInsets.all(globals.buttonPad),
+                    child: Text(
+                      'Confirm',
+                      style: TextStyle(fontSize: globals.buttonFontSize),
+                    ))),
           ],
         );
       },
@@ -819,9 +853,9 @@ class _DoodlePageState extends State<DoodlePage> {
   Widget build(BuildContext context) {
     return WillPopScope(
         child: Scaffold(
+          backgroundColor: globals.bgColor,
           body: Container(
               alignment: Alignment.center,
-              color: Colors.yellow[100],
               child: Stack(
                 children: [
                   GestureDetector(
@@ -830,39 +864,63 @@ class _DoodlePageState extends State<DoodlePage> {
                       onPanEnd: onPanEnd,
                       child: Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(left: 10),
-                                child: ElevatedButton(
-                                    onPressed: () {
-                                      confirmExit();
-                                    },
-                                    child: Text('Exit')),
-                              ),
-                              ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, [true, strokes]);
-                                  },
-                                  child: Text('Exit True')),
-                              ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, [false, strokes]);
-                                  },
-                                  child: Text('Exit False')),
-                            ],
-                          ),
-                          Row(
-                              key: rowTextKey,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          IntrinsicHeight(
+                            child: Stack(
                               children: [
-                                Container(
-                                    child: Text('Keyword: ${widget.keyword}')),
-                                Container(
-                                    child: Text(
-                                        'Time: ${_start.toStringAsFixed(1)}'))
-                              ]),
+                                Row(
+                                    key: rowTextKey,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Align(
+                                          child: Text(
+                                              'Keyword: ${widget.keyword}',
+                                              style: const TextStyle(
+                                                  fontSize: 24))),
+                                      Align(
+                                          child: Text(
+                                              'Time: ${_start.toStringAsFixed(1)}'))
+                                    ]),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: ElevatedButton(
+                                      style: ButtonStyle(
+                                          shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                              RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          globals.borderRad),
+                                                  side: BorderSide(
+                                                      color: globals
+                                                          .themeColor)))),
+                                      onPressed: () {
+                                        confirmExit();
+                                      },
+                                      child: Container(
+                                          padding:
+                                              EdgeInsets.all(globals.buttonPad),
+                                          child: Text(
+                                            'Exit',
+                                            style: TextStyle(
+                                                fontSize:
+                                                    globals.buttonFontSize),
+                                          ))),
+                                ),
+                                // ElevatedButton(
+                                //     onPressed: () {
+                                //       Navigator.pop(context, [true, strokes]);
+                                //     },
+                                //     child: Text('Exit True')),
+                                // ElevatedButton(
+                                //     onPressed: () {
+                                //       Navigator.pop(context, [false, strokes]);
+                                //     },
+                                //     child: Text('Exit False')),
+                              ],
+                            ),
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -872,7 +930,7 @@ class _DoodlePageState extends State<DoodlePage> {
                                   child: Container(
                                     key: containerKey,
                                     // color: Colors.transparent,
-                                    color: Colors.blue.shade100,
+                                    color: globals.themeColor,
                                     // width: MediaQuery.of(context).size.width,
                                     // height: MediaQuery.of(context).size.height,
                                     width: imSize + (imPadding * 2),

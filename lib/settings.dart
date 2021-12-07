@@ -170,195 +170,237 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: const Text('Settings'),
+        ),
+        backgroundColor: globals.bgColor,
         body: Center(
             child: IntrinsicWidth(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Rounds:',
-                style: TextStyle(fontSize: 24),
-              ),
-              Container(
-                margin: EdgeInsets.only(left: 10),
-                child: DropdownButton<String>(
-                  style: TextStyle(fontSize: 24),
-                  value: roundsValue,
-                  icon: const Icon(Icons.arrow_downward),
-                  iconSize: 16,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      roundsValue = newValue!;
-                    });
-                  },
-                  items: <String>['3', '5', '7']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value,
-                          style: TextStyle(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.primary)),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Timer:',
-                style: TextStyle(fontSize: 24),
-              ),
-              Container(
-                margin: EdgeInsets.only(left: 10),
-                child: DropdownButton<String>(
-                  style: TextStyle(fontSize: 24),
-                  value: timerValue,
-                  icon: const Icon(Icons.arrow_downward),
-                  iconSize: 16,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      timerValue = newValue!;
-                    });
-                  },
-                  items: <String>['10', '20', '30', '40', '50', '60']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value,
-                          style: TextStyle(
-                              fontSize: 24,
-                              color: Theme.of(context).colorScheme.primary)),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ),
-          // ElevatedButton(
-          //   onPressed: () async {
-          //     final taskIdKeywords = await FlutterDownloader.enqueue(
-          //       url:
-          //           'https://github.com/kennysusanto/doodle/raw/main/keywords.txt',
-          //       savedDir: downloadFolderPath,
-          //       showNotification:
-          //           true, // show download progress in status bar (for Android)
-          //       openFileFromNotification:
-          //           false, // click on notification to open downloaded file (for Android)
-          //     );
-
-          //     final taskIdAIModel = await FlutterDownloader.enqueue(
-          //       url:
-          //           'https://github.com/kennysusanto/doodle/raw/main/my_h5_model.h5',
-          //       savedDir: downloadFolderPath,
-          //       showNotification:
-          //           true, // show download progress in status bar (for Android)
-          //       openFileFromNotification:
-          //           false, // click on notification to open downloa ded file (for Android)
-          //     );
-          //   },
-          //   child: Text('Update AI Model & Keywords'),
-          // ),
-          // ElevatedButton(
-          //   onPressed: () async {
-          //     //_download();
-          //     // _download2(_fileUrlKeywords);
-          //     // _download2(_fileUrlH5Model);
-          //     // _download2(_fileUrlTfliteModel);
-          //     // _download2(_fileUrlLabel);
-          //     // _download2(_fileUrlLabel2);
-          //   },
-          //   child: Text('Update AI Model & Keywords'),
-          // ),
-          // Text(_progress),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: EdgeInsets.only(left: 5, right: 5),
-                child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                        padding: EdgeInsets.all(15),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(fontSize: 24),
-                        ))),
-              ),
-              Container(
-                margin: EdgeInsets.only(left: 5, right: 5),
-                child: TextButton(
-                    onPressed: () {
-                      setState(() {
-                        roundsValue = '3';
-                        timerValue = '20';
-                      });
-                    },
-                    child: Container(
-                        padding: EdgeInsets.all(15),
-                        child: Text(
-                          'Reset',
-                          style: TextStyle(fontSize: 24),
-                        ))),
-              ),
-              Container(
-                  margin: EdgeInsets.only(left: 5, right: 5),
-                  child: ElevatedButton(
-                      onPressed: () {
-                        switch (roundsValue) {
-                          case '3':
-                            globals.numRounds = 3;
-                            break;
-                          case '5':
-                            globals.numRounds = 5;
-                            break;
-                          case '7':
-                            globals.numRounds = 7;
-                            break;
-                        }
-
-                        switch (timerValue) {
-                          case '10':
-                            globals.timerTime = 10;
-                            break;
-                          case '20':
-                            globals.timerTime = 20;
-                            break;
-                          case '30':
-                            globals.timerTime = 30;
-                            break;
-                          case '40':
-                            globals.timerTime = 40;
-                            break;
-                          case '50':
-                            globals.timerTime = 50;
-                            break;
-                          case '60':
-                            globals.timerTime = 60;
-                            break;
-                        }
-
-                        Navigator.of(context).pop();
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Rounds:',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    child: DropdownButton<String>(
+                      style: const TextStyle(fontSize: 24),
+                      value: roundsValue,
+                      icon: const Icon(Icons.arrow_downward),
+                      iconSize: 16,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          roundsValue = newValue!;
+                        });
                       },
-                      child: Container(
-                          padding: EdgeInsets.all(15),
-                          child: Text(
-                            'Save',
-                            style: TextStyle(fontSize: 24),
-                          )))),
+                      items: <String>['3', '5', '7']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value,
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  color:
+                                      Theme.of(context).colorScheme.primary)),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Timer:',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    child: DropdownButton<String>(
+                      style: const TextStyle(fontSize: 24),
+                      value: timerValue,
+                      icon: const Icon(Icons.arrow_downward),
+                      iconSize: 16,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          timerValue = newValue!;
+                        });
+                      },
+                      items: <String>['10', '20', '30', '40', '50', '60']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value,
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  color:
+                                      Theme.of(context).colorScheme.primary)),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+              // ElevatedButton(
+              //   onPressed: () async {
+              //     final taskIdKeywords = await FlutterDownloader.enqueue(
+              //       url:
+              //           'https://github.com/kennysusanto/doodle/raw/main/keywords.txt',
+              //       savedDir: downloadFolderPath,
+              //       showNotification:
+              //           true, // show download progress in status bar (for Android)
+              //       openFileFromNotification:
+              //           false, // click on notification to open downloaded file (for Android)
+              //     );
+
+              //     final taskIdAIModel = await FlutterDownloader.enqueue(
+              //       url:
+              //           'https://github.com/kennysusanto/doodle/raw/main/my_h5_model.h5',
+              //       savedDir: downloadFolderPath,
+              //       showNotification:
+              //           true, // show download progress in status bar (for Android)
+              //       openFileFromNotification:
+              //           false, // click on notification to open downloa ded file (for Android)
+              //     );
+              //   },
+              //   child: Text('Update AI Model & Keywords'),
+              // ),
+              // ElevatedButton(
+              //   onPressed: () async {
+              //     //_download();
+              //     // _download2(_fileUrlKeywords);
+              //     // _download2(_fileUrlH5Model);
+              //     // _download2(_fileUrlTfliteModel);
+              //     // _download2(_fileUrlLabel);
+              //     // _download2(_fileUrlLabel2);
+              //   },
+              //   child: Text('Update AI Model & Keywords'),
+              // ),
+              // Text(_progress),
+              Container(
+                margin: EdgeInsets.only(top: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(left: 5, right: 5),
+                      child: OutlinedButton(
+                          style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          globals.borderRad),
+                                      side: BorderSide(
+                                          color: globals.themeColor))),
+                              side: MaterialStateProperty.all(
+                                  BorderSide(color: globals.themeColor))),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                              padding: EdgeInsets.all(globals.buttonPad),
+                              child: Text(
+                                'Cancel',
+                                style:
+                                    TextStyle(fontSize: globals.buttonFontSize),
+                              ))),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(left: 5, right: 5),
+                      child: OutlinedButton(
+                          style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(globals.borderRad),
+                                side: BorderSide(
+                                  color: globals.themeColor,
+                                ),
+                              )),
+                              side: MaterialStateProperty.all(
+                                  BorderSide(color: globals.themeColor))),
+                          onPressed: () {
+                            setState(() {
+                              roundsValue = '3';
+                              timerValue = '20';
+                            });
+                          },
+                          child: Container(
+                              padding: EdgeInsets.all(globals.buttonPad),
+                              child: Text(
+                                'Reset',
+                                style:
+                                    TextStyle(fontSize: globals.buttonFontSize),
+                              ))),
+                    ),
+                    Container(
+                        margin: const EdgeInsets.only(left: 5, right: 5),
+                        child: ElevatedButton(
+                            style: ButtonStyle(
+                                shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            globals.borderRad),
+                                        side: BorderSide(
+                                            color: globals.themeColor)))),
+                            onPressed: () {
+                              switch (roundsValue) {
+                                case '3':
+                                  globals.numRounds = 3;
+                                  break;
+                                case '5':
+                                  globals.numRounds = 5;
+                                  break;
+                                case '7':
+                                  globals.numRounds = 7;
+                                  break;
+                              }
+
+                              switch (timerValue) {
+                                case '10':
+                                  globals.timerTime = 10;
+                                  break;
+                                case '20':
+                                  globals.timerTime = 20;
+                                  break;
+                                case '30':
+                                  globals.timerTime = 30;
+                                  break;
+                                case '40':
+                                  globals.timerTime = 40;
+                                  break;
+                                case '50':
+                                  globals.timerTime = 50;
+                                  break;
+                                case '60':
+                                  globals.timerTime = 60;
+                                  break;
+                              }
+
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                                padding: EdgeInsets.all(globals.buttonPad),
+                                child: Text(
+                                  'Save',
+                                  style: TextStyle(
+                                      fontSize: globals.buttonFontSize),
+                                )))),
+                  ],
+                ),
+              )
             ],
-          )
-        ],
-      ),
-    )));
+          ),
+        )));
   }
 }
