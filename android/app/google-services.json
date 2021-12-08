@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "386362481596",
+    "project_id": "doodle-cbdc8",
+    "storage_bucket": "doodle-cbdc8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386362481596:android:c08b1dc8e9556d6c4069b9",
+        "android_client_info": {
+          "package_name": "com.example.doodle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "386362481596-12de1ar4fl48jfr8gts9e8oq3pfpulc8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.doodle",
+            "certificate_hash": "ac09ffdb7a78fb037f745b29f46e992350bbde3a"
+          }
+        },
+        {
+          "client_id": "386362481596-ireradb4l0505njb6beknj9o317qcoc2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCv-OSQPO4ci0_gsyw1_v0BRoZkvLcWWDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "386362481596-ireradb4l0505njb6beknj9o317qcoc2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

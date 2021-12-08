@@ -7,6 +7,7 @@ import 'globals.dart' as globals;
 import 'routes.dart';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:firebase_database/firebase_database.dart';
 
 class DoodleHandler extends StatefulWidget {
   const DoodleHandler({Key? key}) : super(key: key);
