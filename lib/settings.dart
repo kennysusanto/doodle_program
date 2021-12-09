@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'globals.dart' as globals;
 
 class SettingsPage extends StatefulWidget {
@@ -16,23 +13,23 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   String roundsValue = globals.numRounds.toString();
   String timerValue = globals.timerTime.toString();
-  String downloadFolderPath = '/storage/emulated/0/Download/';
+  // String downloadFolderPath = '/storage/emulated/0/Download/';
   // Directory dir = Directory('/storage/emulated/0/Download');
 
-  final String _fileUrlKeywords =
-      "https://github.com/kennysusanto/doodle/raw/main/keywords.txt";
-  final String _fileUrlH5Model =
-      "https://github.com/kennysusanto/doodle/raw/main/my_h5_model.h5";
-  final String _fileUrlTfliteModel =
-      "https://github.com/kennysusanto/doodle/raw/main/my_tflite_model.tflite";
-  // final String _fileUrlLabel = "https://github.com/kennysusanto/doodle/raw/main/labels.txt";
-  final String _fileUrlLabel =
-      "https://raw.githubusercontent.com/kennysusanto/doodle/main/labels.txt";
+  // final String _fileUrlKeywords =
+  //     "https://github.com/kennysusanto/doodle/raw/main/keywords.txt";
+  // final String _fileUrlH5Model =
+  //     "https://github.com/kennysusanto/doodle/raw/main/my_h5_model.h5";
+  // final String _fileUrlTfliteModel =
+  //     "https://github.com/kennysusanto/doodle/raw/main/my_tflite_model.tflite";
+  // // final String _fileUrlLabel = "https://github.com/kennysusanto/doodle/raw/main/labels.txt";
+  // final String _fileUrlLabel =
+  //     "https://raw.githubusercontent.com/kennysusanto/doodle/main/labels.txt";
 
-  final String _fileUrlLabel2 =
-      "https://raw.githubusercontent.com/kennysusanto/doodle/main/labels2.txt";
+  // final String _fileUrlLabel2 =
+  //     "https://raw.githubusercontent.com/kennysusanto/doodle/main/labels2.txt";
 
-  String _progress = "-";
+  // String _progress = "-";
 
   // Future<Directory?> _getDownloadDirectory() async {
   //   if (Platform.isAndroid) {
@@ -58,33 +55,33 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
 
-    IsolateNameServer.registerPortWithName(
-        _port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) {
-      String id = data[0];
-      DownloadTaskStatus status = data[1];
-      int progress = data[2];
+    // IsolateNameServer.registerPortWithName(
+    //     _port.sendPort, 'downloader_send_port');
+    // _port.listen((dynamic data) {
+    //   String id = data[0];
+    //   DownloadTaskStatus status = data[1];
+    //   int progress = data[2];
 
-      setState(() {
-        _progress = 'Downloading ${id.toString()} ... ${progress.toString()}';
-      });
-    });
+    //   setState(() {
+    //     _progress = 'Downloading ${id.toString()} ... ${progress.toString()}';
+    //   });
+    // });
 
-    FlutterDownloader.registerCallback(downloadCallback);
+    // FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
   void dispose() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
+    // IsolateNameServer.removePortNameMapping('downloader_send_port');
     super.dispose();
   }
 
-  static void downloadCallback(
-      String id, DownloadTaskStatus status, int progress) {
-    final SendPort send =
-        IsolateNameServer.lookupPortByName('downloader_send_port')!;
-    send.send([id, status, progress]);
-  }
+  // static void downloadCallback(
+  //     String id, DownloadTaskStatus status, int progress) {
+  //   final SendPort send =
+  //       IsolateNameServer.lookupPortByName('downloader_send_port')!;
+  //   send.send([id, status, progress]);
+  // }
 
   void _download2(String url) async {
     // final status = await Permission.storage.request();

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:doodle/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart' as pp;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,7 +12,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:firebase_database/firebase_database.dart';
 
 class DoodleHandler extends StatefulWidget {
-  const DoodleHandler({Key? key}) : super(key: key);
+  late FirebaseApp fbapp;
+  DoodleHandler({Key? key, required this.fbapp}) : super(key: key);
 
   @override
   _DoodleHandlerState createState() => _DoodleHandlerState();
@@ -24,9 +27,29 @@ class _DoodleHandlerState extends State<DoodleHandler> {
   List labels = [];
   List labels2 = [];
   List allStrokes = [];
+  late FirebaseDatabase database;
 
   void send() async {
     SchedulerBinding.instance!.addPostFrameCallback((_) async {
+      // print(widget.fbapp.name);
+
+      print(Firebase.apps);
+      bool exists = false;
+      for (FirebaseApp fba in Firebase.apps) {
+        if (fba.name == 'b') {
+          exists = true;
+        }
+      }
+      if (!exists) {
+        FirebaseApp b = await Firebase.initializeApp(
+            name: "b", options: DefaultFirebaseOptions.currentPlatform);
+        // print('$b ${b.name} ${b.options}');
+        database = FirebaseDatabase.instanceFor(app: b);
+      } else {
+        FirebaseApp b = Firebase.app('b');
+        database = FirebaseDatabase.instanceFor(app: b);
+      }
+
       final _labels2String = await loadLabels2();
       final _labels2List = _labels2String.split("\n");
 
@@ -44,8 +67,9 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       }
 
       for (int i = 0; i < numOfRounds; i++) {
-        final res = await Navigator.of(context)
-            .push(DoodlePageRoute(keyword: _labels2List[rnglist.toList()[i]]));
+        String kw = _labels2List[rnglist.toList()[i]];
+        final res =
+            await Navigator.of(context).push(DoodlePageRoute(keyword: kw));
         // print(res);
         if (res == null) {
           break;
@@ -55,10 +79,13 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         } else if (res[0] == false) {
           wrongs.add(res[1]);
         }
-        if (res[1].length > 0) {
-          // if there's stroke, if not then dont add
-          allStrokes.add(res);
-        }
+        // if (res[1].length > 0) {
+        //   // if there's stroke, if not then dont add
+        //   allStrokes.add(res);
+        // }
+        keywords.add([res[0], kw]);
+
+        allStrokes.add(res);
       }
       print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
 
@@ -85,8 +112,25 @@ class _DoodleHandlerState extends State<DoodleHandler> {
           py.add(y);
           pt.add(t);
         }
-        whiteStrokes.add([px, py, pt]);
+        List strokeDetails = keywords[i];
+        String kw = strokeDetails[1];
+        bool guessed = strokeDetails[0];
+        String jsonStr =
+            '{"keyword": "$kw", "guessed": "$guessed", "strokes": "${[
+          px,
+          py,
+          pt
+        ]}"}';
+        // whiteStrokes.add([px, py, pt]);
+        whiteStrokes.add(jsonStr);
       }
+
+      DatabaseReference ref = database.ref('doodleMaster');
+      DatabaseEvent event = await ref.once();
+      print(event.snapshot.value);
+      // await ref.set({"strokes": whiteStrokes.toString()});
+      DatabaseReference newStroke = ref.push();
+      newStroke.set({"doodles": whiteStrokes.toString()});
 
       Directory? docsDir = await pp.getExternalStorageDirectory();
       File('${docsDir!.path}/whiteStrokes.txt')
@@ -102,6 +146,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
   @override
   void initState() {
     super.initState();
+
     send();
   }
 

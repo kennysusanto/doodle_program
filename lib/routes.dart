@@ -1,4 +1,5 @@
 import 'package:doodle/keywords.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:doodle/main.dart';
@@ -35,25 +36,29 @@ class SettingsPageRoute extends CupertinoPageRoute {
 }
 
 class MainMenuRoute extends CupertinoPageRoute {
-  MainMenuRoute() : super(builder: (BuildContext context) => const MainMenu());
+  late FirebaseApp fbapp;
+  MainMenuRoute({required this.fbapp})
+      : super(builder: (BuildContext context) => MainMenu(fbapp: fbapp));
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return FadeTransition(opacity: animation, child: const MainMenu());
+    return FadeTransition(opacity: animation, child: MainMenu(fbapp: fbapp));
   }
 }
 
 class DoodleHandlerRoute extends CupertinoPageRoute {
-  DoodleHandlerRoute()
-      : super(builder: (BuildContext context) => const DoodleHandler());
+  late FirebaseApp fbapp;
+  DoodleHandlerRoute({required this.fbapp})
+      : super(builder: (BuildContext context) => DoodleHandler(fbapp: fbapp));
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return FadeTransition(opacity: animation, child: const DoodleHandler());
+    return FadeTransition(
+        opacity: animation, child: DoodleHandler(fbapp: fbapp));
   }
 }
 

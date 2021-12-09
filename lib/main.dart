@@ -1,24 +1,36 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'routes.dart';
 import 'package:doodle/globals.dart' as globals;
 
 void main() async {
+  FirebaseApp fbapp;
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await FlutterDownloader.initialize(
-      debug: true // optional: set false to disable printing logs to console
-      );
-  runApp(const MyApp());
+  if (Firebase.apps.isEmpty) {
+    // print("EMPTY");
+    print(Firebase.apps.toList());
+    fbapp = await Firebase.initializeApp(
+        name: 'a', options: DefaultFirebaseOptions.android);
+  } else {
+    fbapp = Firebase.app(); // if already initialized, use that one
+  }
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
+  // await FlutterDownloader.initialize(
+  //     debug: true // optional: set false to disable printing logs to console
+  //     );
+  runApp(MyApp(fbapp: fbapp));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final FirebaseApp fbapp;
+  const MyApp({Key? key, required this.fbapp}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -43,7 +55,9 @@ class MyApp extends StatelessWidget {
           // is not restarted.
           primarySwatch: createMaterialColor(globals.themeColor),
           fontFamily: 'Roboto'),
-      home: const MainMenu(),
+      home: MainMenu(
+        fbapp: fbapp,
+      ),
     );
   }
 }
@@ -69,7 +83,8 @@ MaterialColor createMaterialColor(Color color) {
 }
 
 class MainMenu extends StatefulWidget {
-  const MainMenu({Key? key}) : super(key: key);
+  late FirebaseApp fbapp;
+  MainMenu({Key? key, required this.fbapp}) : super(key: key);
 
   @override
   _MainMenuState createState() => _MainMenuState();
@@ -143,7 +158,8 @@ class _MainMenuState extends State<MainMenu> {
                                   BorderRadius.circular(globals.borderRad),
                               side: BorderSide(color: globals.themeColor)))),
                   onPressed: () {
-                    Navigator.of(context).push(DoodleHandlerRoute());
+                    Navigator.of(context)
+                        .push(DoodleHandlerRoute(fbapp: widget.fbapp));
                   },
                   child: Container(
                     padding: EdgeInsets.all(globals.buttonPad),
