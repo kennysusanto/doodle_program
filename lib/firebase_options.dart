@@ -4,9 +4,16 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-// Default [FirebaseOptions] for use with your Firebase apps.
-//
-// Example:
+/// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// Example:
+/// ```dart
+/// import 'firebase_options.dart';
+/// // ...
+/// await Firebase.initializeApp(
+///   options: DefaultFirebaseOptions.currentPlatform,
+/// );
+/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -36,8 +43,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '386362481596',
     projectId: 'doodle-cbdc8',
     authDomain: 'doodle-cbdc8.firebaseapp.com',
-    databaseURL:
-        'https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL: 'https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'doodle-cbdc8.appspot.com',
   );
 
@@ -46,23 +52,19 @@ class DefaultFirebaseOptions {
     appId: '1:386362481596:android:c08b1dc8e9556d6c4069b9',
     messagingSenderId: '386362481596',
     projectId: 'doodle-cbdc8',
-    databaseURL:
-        'https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL: 'https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'doodle-cbdc8.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCf1T9fQw56b6BoFi1xCXLkINLrZXh5QlU',
-    appId: '1:386362481596:ios:eb69823ee8e482714069b9',
+    appId: '1:386362481596:ios:866d5f385e73e5794069b9',
     messagingSenderId: '386362481596',
     projectId: 'doodle-cbdc8',
-    databaseURL:
-        'https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL: 'https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'doodle-cbdc8.appspot.com',
-    androidClientId:
-        '386362481596-12de1ar4fl48jfr8gts9e8oq3pfpulc8.apps.googleusercontent.com',
-    iosClientId:
-        '386362481596-913rbvel79ho9hmi3rlr8rlv1fguhfci.apps.googleusercontent.com',
-    iosBundleId: 'sd',
+    androidClientId: '386362481596-12de1ar4fl48jfr8gts9e8oq3pfpulc8.apps.googleusercontent.com',
+    iosClientId: '386362481596-s91qdlgcjgaf5ape5tcgpb94m2io5j9j.apps.googleusercontent.com',
+    iosBundleId: 'y',
   );
 }

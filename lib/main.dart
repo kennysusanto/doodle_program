@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ void main() async {
   } else {
     fbapp = Firebase.app(); // if already initialized, use that one
   }
+  FirebaseAuth auth = FirebaseAuth.instanceFor(app: fbapp);
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );

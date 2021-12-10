@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "386362481596",
+    "firebase_url": "https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "doodle-cbdc8",
     "storage_bucket": "doodle-cbdc8.appspot.com"
   },
@@ -37,6 +38,13 @@
             {
               "client_id": "386362481596-ireradb4l0505njb6beknj9o317qcoc2.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "386362481596-913rbvel79ho9hmi3rlr8rlv1fguhfci.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "sd"
+              }
             }
           ]
         }
