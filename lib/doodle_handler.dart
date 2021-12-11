@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:doodle/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:path_provider/path_provider.dart' as pp;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,8 +14,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:firebase_database/firebase_database.dart';
 
 class DoodleHandler extends StatefulWidget {
-  late FirebaseApp fbapp;
-  DoodleHandler({Key? key, required this.fbapp}) : super(key: key);
+  final String userEmail;
+  const DoodleHandler({Key? key, required this.userEmail}) : super(key: key);
 
   @override
   _DoodleHandlerState createState() => _DoodleHandlerState();
@@ -33,21 +35,23 @@ class _DoodleHandlerState extends State<DoodleHandler> {
     SchedulerBinding.instance!.addPostFrameCallback((_) async {
       // print(widget.fbapp.name);
 
-      print(Firebase.apps);
+      // print(Firebase.apps);
       bool exists = false;
+      String firebaseAppName = 'fb_doodlehandler';
       for (FirebaseApp fba in Firebase.apps) {
-        if (fba.name == 'b') {
+        if (fba.name == firebaseAppName) {
           exists = true;
         }
       }
       if (!exists) {
-        FirebaseApp b = await Firebase.initializeApp(
-            name: "b", options: DefaultFirebaseOptions.currentPlatform);
+        FirebaseApp fbapp = await Firebase.initializeApp(
+            name: firebaseAppName,
+            options: DefaultFirebaseOptions.currentPlatform);
         // print('$b ${b.name} ${b.options}');
-        database = FirebaseDatabase.instanceFor(app: b);
+        database = FirebaseDatabase.instanceFor(app: fbapp);
       } else {
-        FirebaseApp b = Firebase.app('b');
-        database = FirebaseDatabase.instanceFor(app: b);
+        FirebaseApp fbapp = Firebase.app(firebaseAppName);
+        database = FirebaseDatabase.instanceFor(app: fbapp);
       }
 
       final _labels2String = await loadLabels2();
@@ -116,21 +120,25 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         String kw = strokeDetails[1];
         bool guessed = strokeDetails[0];
         String jsonStr =
-            '{"keyword": "$kw", "guessed": "$guessed", "strokes": "${[
+            '{"keyword": "${kw.trim().replaceAll(RegExp('\r'), '')}", "guessed": "$guessed", "strokes": ${[
           px,
           py,
           pt
-        ]}"}';
+        ]}}';
         // whiteStrokes.add([px, py, pt]);
         whiteStrokes.add(jsonStr);
       }
 
       DatabaseReference ref = database.ref('doodleMaster');
       DatabaseEvent event = await ref.once();
-      print(event.snapshot.value);
+      // print(event.snapshot.value);
       // await ref.set({"strokes": whiteStrokes.toString()});
       DatabaseReference newStroke = ref.push();
-      newStroke.set({"doodles": whiteStrokes.toString()});
+      newStroke.set({
+        "user_email": widget.userEmail,
+        "datetime": DateTime.now().toString(),
+        "doodles": whiteStrokes.toString()
+      });
 
       Directory? docsDir = await pp.getExternalStorageDirectory();
       File('${docsDir!.path}/whiteStrokes.txt')

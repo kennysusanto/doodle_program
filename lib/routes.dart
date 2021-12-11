@@ -36,29 +36,31 @@ class SettingsPageRoute extends CupertinoPageRoute {
 }
 
 class MainMenuRoute extends CupertinoPageRoute {
-  late FirebaseApp fbapp;
+  FirebaseApp fbapp;
   MainMenuRoute({required this.fbapp})
-      : super(builder: (BuildContext context) => MainMenu(fbapp: fbapp));
+      : super(builder: (BuildContext context) => MainMenu());
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return FadeTransition(opacity: animation, child: MainMenu(fbapp: fbapp));
+    return FadeTransition(opacity: animation, child: MainMenu());
   }
 }
 
 class DoodleHandlerRoute extends CupertinoPageRoute {
-  late FirebaseApp fbapp;
-  DoodleHandlerRoute({required this.fbapp})
-      : super(builder: (BuildContext context) => DoodleHandler(fbapp: fbapp));
+  String userEmail;
+  DoodleHandlerRoute({required this.userEmail})
+      : super(
+            builder: (BuildContext context) =>
+                DoodleHandler(userEmail: userEmail));
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     return FadeTransition(
-        opacity: animation, child: DoodleHandler(fbapp: fbapp));
+        opacity: animation, child: DoodleHandler(userEmail: userEmail));
   }
 }
 
@@ -98,14 +100,17 @@ class CorrectPageRoute extends CupertinoPageRoute {
 }
 
 class PreviousDoodlesRoute extends CupertinoPageRoute {
-  PreviousDoodlesRoute()
-      : super(builder: (BuildContext context) => const PreviousDoodlesPage());
+  String userEmail;
+  PreviousDoodlesRoute({required this.userEmail})
+      : super(
+            builder: (BuildContext context) =>
+                PreviousDoodlesPage(userEmail: userEmail));
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     return FadeTransition(
-        opacity: animation, child: const PreviousDoodlesPage());
+        opacity: animation, child: PreviousDoodlesPage(userEmail: userEmail));
   }
 }

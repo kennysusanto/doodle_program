@@ -350,11 +350,11 @@ class _DoodlePageState extends State<DoodlePage> {
     preds.add(pred.key);
     _predkey = preds.toString();
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('${pred.key} (${pred.value})'),
-      duration: const Duration(milliseconds: 1000),
-    ));
+    // ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //   content: Text('${pred.key} (${pred.value})'),
+    //   duration: const Duration(milliseconds: 1000),
+    // ));
     return Category(pred.key, pred.value);
   }
 

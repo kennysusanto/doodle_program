@@ -8,31 +8,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'routes.dart';
 import 'package:doodle/globals.dart' as globals;
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() async {
-  FirebaseApp fbapp;
   WidgetsFlutterBinding.ensureInitialized();
-  if (Firebase.apps.isEmpty) {
-    // print("EMPTY");
-    print(Firebase.apps.toList());
-    fbapp = await Firebase.initializeApp(
-        name: 'a', options: DefaultFirebaseOptions.android);
-  } else {
-    fbapp = Firebase.app(); // if already initialized, use that one
-  }
-  FirebaseAuth auth = FirebaseAuth.instanceFor(app: fbapp);
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
-  // await FlutterDownloader.initialize(
-  //     debug: true // optional: set false to disable printing logs to console
-  //     );
-  runApp(MyApp(fbapp: fbapp));
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final FirebaseApp fbapp;
-  const MyApp({Key? key, required this.fbapp}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -57,9 +42,7 @@ class MyApp extends StatelessWidget {
           // is not restarted.
           primarySwatch: createMaterialColor(globals.themeColor),
           fontFamily: 'Roboto'),
-      home: MainMenu(
-        fbapp: fbapp,
-      ),
+      home: const MainMenu(),
     );
   }
 }
@@ -85,24 +68,77 @@ MaterialColor createMaterialColor(Color color) {
 }
 
 class MainMenu extends StatefulWidget {
-  late FirebaseApp fbapp;
-  MainMenu({Key? key, required this.fbapp}) : super(key: key);
+  const MainMenu({Key? key}) : super(key: key);
 
   @override
   _MainMenuState createState() => _MainMenuState();
 }
 
 class _MainMenuState extends State<MainMenu> {
+  UserCredential? _currentUser;
   String pappName = '';
   String ppackageName = '';
   String pversion = '';
   String pbuildNumber = '';
+  // late FirebaseApp fbapp;
 
   @override
   void initState() {
     super.initState();
+    initFirebase();
+    initGoogleSignIn();
     checkInternet();
     loadAppInfo();
+  }
+
+  void initFirebase() async {
+    bool exists = false;
+    String firebaseAppName = 'fb_main';
+    for (FirebaseApp fba in Firebase.apps) {
+      if (fba.name == firebaseAppName) {
+        exists = true;
+      }
+    }
+    if (!exists) {
+      await Firebase.initializeApp(
+          name: firebaseAppName,
+          options: DefaultFirebaseOptions.currentPlatform);
+    } else {
+      Firebase.app(firebaseAppName);
+    }
+  }
+
+  void initGoogleSignIn() async {
+    // FirebaseAuth auth = FirebaseAuth.instanceFor(app: fbapp);
+    _currentUser = await signInWithGoogle();
+    setState(() {});
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(_currentUser!.user!.email!),
+      duration: const Duration(milliseconds: 1000),
+    ));
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn(scopes: [
+      // 'email',
+      // 'https://www.googleapis.com/auth/contacts.readonly',
+      // 'https://www.googleapis.com/auth/user.emails.read'
+    ]).signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
   void checkInternet() async {
@@ -160,8 +196,16 @@ class _MainMenuState extends State<MainMenu> {
                                   BorderRadius.circular(globals.borderRad),
                               side: BorderSide(color: globals.themeColor)))),
                   onPressed: () {
-                    Navigator.of(context)
-                        .push(DoodleHandlerRoute(fbapp: widget.fbapp));
+                    if (_currentUser != null) {
+                      Navigator.of(context).push(DoodleHandlerRoute(
+                          userEmail: _currentUser!.user!.email!));
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please login'),
+                        duration: Duration(seconds: 1),
+                      ));
+                      initGoogleSignIn();
+                    }
                   },
                   child: Container(
                     padding: EdgeInsets.all(globals.buttonPad),
@@ -172,7 +216,7 @@ class _MainMenuState extends State<MainMenu> {
                   )),
             ),
             Container(
-              margin: EdgeInsets.only(top: 8),
+              margin: const EdgeInsets.only(top: 8),
               child: ElevatedButton(
                   style: ButtonStyle(
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -192,7 +236,7 @@ class _MainMenuState extends State<MainMenu> {
                   )),
             ),
             Container(
-              margin: EdgeInsets.only(top: 8),
+              margin: const EdgeInsets.only(top: 8),
               child: ElevatedButton(
                   style: ButtonStyle(
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -211,7 +255,7 @@ class _MainMenuState extends State<MainMenu> {
                       ))),
             ),
             Container(
-              margin: EdgeInsets.only(top: 8),
+              margin: const EdgeInsets.only(top: 8),
               child: ElevatedButton(
                   style: ButtonStyle(
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -220,7 +264,12 @@ class _MainMenuState extends State<MainMenu> {
                                   BorderRadius.circular(globals.borderRad),
                               side: BorderSide(color: globals.themeColor)))),
                   onPressed: () {
-                    Navigator.of(context).push(PreviousDoodlesRoute());
+                    if (_currentUser != null) {
+                      Navigator.of(context).push(PreviousDoodlesRoute(
+                          userEmail: _currentUser!.user!.email!));
+                    } else {
+                      initGoogleSignIn();
+                    }
                   },
                   child: Container(
                       padding: EdgeInsets.all(globals.buttonPad),
@@ -228,7 +277,49 @@ class _MainMenuState extends State<MainMenu> {
                         'Previous Doodles',
                         style: TextStyle(fontSize: globals.buttonFontSize),
                       ))),
-            )
+            ),
+            Container(
+                margin: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _currentUser != null
+                          ? 'logged in as: ${_currentUser!.user!.email}'
+                          : 'Please sign in',
+                      style: const TextStyle(fontSize: 8),
+                    ),
+                    OutlinedButton(
+                        style: ButtonStyle(
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(globals.borderRad),
+                              side: BorderSide(
+                                color: globals.themeColor,
+                              ),
+                            )),
+                            side: MaterialStateProperty.all(
+                                BorderSide(color: globals.themeColor))),
+                        onPressed: () async {
+                          if (_currentUser != null) {
+                            // _currentUser!.user!.delete();
+                            await FirebaseAuth.instance.signOut();
+                            GoogleSignIn().disconnect();
+                            _currentUser = null;
+                            setState(() {});
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Please login'),
+                              duration: Duration(seconds: 1),
+                            ));
+                            initGoogleSignIn();
+                          }
+                        },
+                        child: Text(_currentUser != null ? 'Logout' : 'Login'))
+                  ],
+                ))
           ],
         ),
       )),
