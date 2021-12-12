@@ -1,3 +1,4 @@
+import 'package:doodle/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -63,8 +64,9 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
         _doodleMaster.add(j);
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Data fetched: ${_doodleMaster.length.toString()}')));
+    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     content: Text('Data fetched: ${_doodleMaster.length.toString()}'),
+    //     duration: const Duration(milliseconds: 100)));
   }
 
   @override
@@ -81,7 +83,7 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
               crossAxisCount: 4,
               itemCount: _doodleMaster.length,
               itemBuilder: (context, i) {
-                var match = _doodleMaster[i];
+                Map<String, dynamic> match = _doodleMaster[i];
                 return Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(globals.borderRad),
@@ -91,11 +93,13 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
                         splashColor: globals.themeColorDarker,
                         borderRadius: BorderRadius.circular(globals.borderRad),
                         onTap: () {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text(''),
-                            duration: Duration(milliseconds: 100),
-                          ));
+                          // ScaffoldMessenger.of(context)
+                          //     .showSnackBar(const SnackBar(
+                          //   content: Text(''),
+                          //   duration: Duration(milliseconds: 100),
+                          // ));
+                          Navigator.of(context).push(
+                              DoodleReplayRoute(doodles: match['doodles']));
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(20),
@@ -103,7 +107,7 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
                             children: [
                               Text(match['user_email']),
                               Text(match['datetime']),
-                              Text(match['doodles'].length.toString()),
+                              // Text(match['doodles'].length.toString()),
                               Column(
                                 children: List.generate(match['doodles'].length,
                                     (index) {

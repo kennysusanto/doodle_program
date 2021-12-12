@@ -26,6 +26,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
   List corrects = [];
   List wrongs = [];
   List keywords = [];
+  List guessedKeywordsList = [];
   List labels = [];
   List labels2 = [];
   List allStrokes = [];
@@ -58,7 +59,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       final _labels2List = _labels2String.split("\n");
 
       // select random keywords for n rounds
-      var rng = new Random();
+      var rng = Random();
       Set<int> rnglist = {};
       // print(rnglist.length);
       while (rnglist.length < numOfRounds) {
@@ -66,9 +67,9 @@ class _DoodleHandlerState extends State<DoodleHandler> {
             .length)); // still using the trained keywords, not full keywords
       }
 
-      for (var element in rnglist) {
-        print(_labels2List[element]);
-      }
+      // for (var element in rnglist) {
+      //   print(_labels2List[element]);
+      // }
 
       for (int i = 0; i < numOfRounds; i++) {
         String kw = _labels2List[rnglist.toList()[i]];
@@ -88,10 +89,10 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         //   allStrokes.add(res);
         // }
         keywords.add([res[0], kw]);
-
+        guessedKeywordsList.add(res[2]);
         allStrokes.add(res);
       }
-      print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
+      // print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
 
       // ini data untuk retrain
       // conform strokes to google dataset format [1, 784] white value 0 to 255
@@ -99,50 +100,56 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       // todo disini
 
       // ini data untuk di log
-      List whiteStrokes = [];
-      for (var i = 0; i < allStrokes.length; i++) {
-        List s = allStrokes[i][1][0];
-        List px = []; // x
-        List py = []; // y
-        List pt = []; // time
-        for (var j = 0; j < s.length; j++) {
-          List s2 = s[j];
-          Offset sOffset = s2[0];
-          double x = sOffset.dx;
-          double y = sOffset.dy;
-          double t = double.tryParse(s2[1].toString())!;
+      if (allStrokes.isNotEmpty) {
+        List whiteStrokes = [];
+        for (int i = 0; i < allStrokes.length; i++) {
+          List strokes = allStrokes[i][1];
+          List stroke = [];
+          for (int j = 0; j < strokes.length; j++) {
+            List singleStroke = strokes[j];
+            List px = []; // x
+            List py = []; // y
+            List pt = []; // time
+            for (int k = 0; k < singleStroke.length; k++) {
+              List p = singleStroke[k];
+              Offset sOffset = p[0];
+              double x = sOffset.dx;
+              double y = sOffset.dy;
+              double t = double.tryParse(p[1].toString())!;
 
-          px.add(x);
-          py.add(y);
-          pt.add(t);
+              px.add(x);
+              py.add(y);
+              pt.add(t);
+            }
+            stroke.add([px, py, pt]);
+          }
+          List strokeDetails = keywords[i];
+          String kw = strokeDetails[1];
+          bool guessed = strokeDetails[0];
+          List guessedKeywords = guessedKeywordsList[i];
+          String jsonStr =
+              '{"keyword": "${kw.trim().replaceAll(RegExp('\r'), '')}", "guessed": "$guessed", "guessed_keywords": $guessedKeywords, "strokes": $stroke}';
+          // whiteStrokes.add([px, py, pt]);
+          whiteStrokes.add(jsonStr);
         }
-        List strokeDetails = keywords[i];
-        String kw = strokeDetails[1];
-        bool guessed = strokeDetails[0];
-        String jsonStr =
-            '{"keyword": "${kw.trim().replaceAll(RegExp('\r'), '')}", "guessed": "$guessed", "strokes": ${[
-          px,
-          py,
-          pt
-        ]}}';
-        // whiteStrokes.add([px, py, pt]);
-        whiteStrokes.add(jsonStr);
+
+        if (whiteStrokes.isNotEmpty) {
+          DatabaseReference ref = database.ref('doodleMaster');
+          // DatabaseEvent event = await ref.once();
+          // print(event.snapshot.value);
+          // await ref.set({"strokes": whiteStrokes.toString()});
+          DatabaseReference newStroke = ref.push();
+          newStroke.set({
+            "user_email": widget.userEmail,
+            "datetime": DateTime.now().toString(),
+            "doodles": whiteStrokes.toString()
+          });
+
+          Directory? docsDir = await pp.getExternalStorageDirectory();
+          File('${docsDir!.path}/whiteStrokes.txt')
+              .writeAsString(whiteStrokes.toString());
+        }
       }
-
-      DatabaseReference ref = database.ref('doodleMaster');
-      DatabaseEvent event = await ref.once();
-      // print(event.snapshot.value);
-      // await ref.set({"strokes": whiteStrokes.toString()});
-      DatabaseReference newStroke = ref.push();
-      newStroke.set({
-        "user_email": widget.userEmail,
-        "datetime": DateTime.now().toString(),
-        "doodles": whiteStrokes.toString()
-      });
-
-      Directory? docsDir = await pp.getExternalStorageDirectory();
-      File('${docsDir!.path}/whiteStrokes.txt')
-          .writeAsString(whiteStrokes.toString());
       Navigator.of(context).pop();
     });
   }
@@ -160,6 +167,6 @@ class _DoodleHandlerState extends State<DoodleHandler> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return const Scaffold();
   }
 }

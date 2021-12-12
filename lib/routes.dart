@@ -8,6 +8,7 @@ import 'package:doodle/settings.dart';
 import 'package:doodle/correct.dart';
 import 'package:doodle/doodle_handler.dart';
 import 'package:doodle/prevdoodles.dart';
+import 'package:doodle/doodle_replay.dart';
 
 class DoodlePageRoute extends CupertinoPageRoute {
   String keyword;
@@ -112,5 +113,21 @@ class PreviousDoodlesRoute extends CupertinoPageRoute {
       Animation<double> secondaryAnimation) {
     return FadeTransition(
         opacity: animation, child: PreviousDoodlesPage(userEmail: userEmail));
+  }
+}
+
+class DoodleReplayRoute extends CupertinoPageRoute {
+  List<dynamic> doodles;
+  DoodleReplayRoute({required this.doodles})
+      : super(
+            builder: (BuildContext context) =>
+                DoodleReplayPage(doodles: doodles));
+
+  // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+    return FadeTransition(
+        opacity: animation, child: DoodleReplayPage(doodles: doodles));
   }
 }

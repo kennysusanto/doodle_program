@@ -87,6 +87,7 @@ class _DoodlePageState extends State<DoodlePage> {
   NormalizeOp postProcessNormalizeOp = NormalizeOp(0, 255);
 
   List preds = [];
+  List guessedKeywords = [];
 
   @override
   void initState() {
@@ -121,7 +122,7 @@ class _DoodlePageState extends State<DoodlePage> {
           setState(() {
             timer.cancel();
           });
-          Navigator.pop(context, [false, strokes]);
+          Navigator.pop(context, [false, strokes, guessedKeywords]);
         } else {
           setState(() {
             _start -= double.tryParse(
@@ -393,18 +394,21 @@ class _DoodlePageState extends State<DoodlePage> {
 
   void _predict(File img) async {
     im.Image imageInput = im.decodeImage(await img.readAsBytes())!;
-    print('imageInput: ${imageInput.length}');
+    // print('imageInput: ${imageInput.length}');
     Category? pred = await predict(imageInput, img);
-    print('prediction: $pred');
+    // print('prediction: $pred');
     // print('${pred!.label} ${widget.keyword}');
-    if (pred!.label.toString().trim() == widget.keyword.toString().trim()) {
+    String t = (double.tryParse(globals.timerTime.toString())! - _start)
+        .toStringAsFixed(1);
+    guessedKeywords.add('["${pred!.label}", $t]');
+    if (pred.label.toString().trim() == widget.keyword.toString().trim()) {
       num timeTaken = _start;
       _timer.cancel();
       await Navigator.of(context).push(CorrectPageRoute(
           akeyword: pred.label.toString(),
           astrokes: strokes,
           atimetaken: timeTaken));
-      Navigator.pop(context, [true, strokes]);
+      Navigator.pop(context, [true, strokes, guessedKeywords]);
     }
     setState(() {});
   }
@@ -418,7 +422,9 @@ class _DoodlePageState extends State<DoodlePage> {
     setState(() {
       // dl.addFirstPoint(point);
       stroke = [];
-      stroke.add([point, _start]);
+      String t = (double.tryParse(globals.timerTime.toString())! - _start)
+          .toStringAsFixed(1);
+      stroke.add([point, t]);
       strokes.add(stroke);
     });
   }
@@ -439,7 +445,9 @@ class _DoodlePageState extends State<DoodlePage> {
           point.dx > containerPos.dx &&
           point.dy > containerPos.dy) {
         // print(point);
-        List p = [point, _start];
+        String t = (double.tryParse(globals.timerTime.toString())! - _start)
+            .toStringAsFixed(1);
+        List p = [point, t];
         stroke.add(p);
         // print('points increased ${strokes.length}, ${stroke.length}');
         strokes[c] = stroke;
@@ -490,7 +498,7 @@ class _DoodlePageState extends State<DoodlePage> {
       for (var j = 0; j < stroke.length; j++) {
         List<dynamic> strokeSingle = stroke[j];
         Offset strokeOffset = strokeSingle[0];
-        double timeStamp = strokeSingle[1];
+        double timeStamp = double.parse(strokeSingle[1]);
         if (j == 0) {
           Offset p =
               Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);

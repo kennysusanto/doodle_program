@@ -115,7 +115,7 @@ class _MainMenuState extends State<MainMenu> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(_currentUser!.user!.email!),
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 100),
     ));
   }
 
@@ -201,7 +201,7 @@ class _MainMenuState extends State<MainMenu> {
                           userEmail: _currentUser!.user!.email!));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Please login'),
+                        content: Text('Please log in'),
                         duration: Duration(seconds: 1),
                       ));
                       initGoogleSignIn();
@@ -268,6 +268,10 @@ class _MainMenuState extends State<MainMenu> {
                       Navigator.of(context).push(PreviousDoodlesRoute(
                           userEmail: _currentUser!.user!.email!));
                     } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please log in'),
+                        duration: Duration(seconds: 1),
+                      ));
                       initGoogleSignIn();
                     }
                   },
@@ -286,7 +290,7 @@ class _MainMenuState extends State<MainMenu> {
                     Text(
                       _currentUser != null
                           ? 'logged in as: ${_currentUser!.user!.email}'
-                          : 'Please sign in',
+                          : 'Please log in',
                       style: const TextStyle(fontSize: 8),
                     ),
                     OutlinedButton(
@@ -309,11 +313,6 @@ class _MainMenuState extends State<MainMenu> {
                             _currentUser = null;
                             setState(() {});
                           } else {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(
-                              content: Text('Please login'),
-                              duration: Duration(seconds: 1),
-                            ));
                             initGoogleSignIn();
                           }
                         },
