@@ -47,6 +47,7 @@ class _DoodlePageState extends State<DoodlePage> {
   GlobalKey containerImageKey2 = GlobalKey();
   GlobalKey rowTextKey = GlobalKey();
   String _predkey = '';
+  Offset trueContainerPos = Offset(0, 0);
 
   Image imGen = const Image(
       image: NetworkImage(
@@ -122,6 +123,22 @@ class _DoodlePageState extends State<DoodlePage> {
           setState(() {
             timer.cancel();
           });
+
+          // RenderBox box3 =
+          //     containerKey.currentContext!.findRenderObject() as RenderBox;
+          // Offset position = box3.localToGlobal(Offset.zero);
+          // print(position);
+          // final dxFromLeft = trueContainerPos.dx;
+          // print(dxFromLeft);
+          for (List s in strokes) {
+            for (List ss in s) {
+              Offset p = ss[0];
+              Offset p2 = Offset(
+                  p.dx - trueContainerPos.dx, p.dy - trueContainerPos.dy);
+              ss[0] = p2;
+            }
+          }
+
           Navigator.pop(context, [false, strokes, guessedKeywords]);
         } else {
           setState(() {
@@ -191,7 +208,7 @@ class _DoodlePageState extends State<DoodlePage> {
       _inputType = TfLiteType.uint8;
       _outputType = TfLiteType.uint8;
 
-      print('$_inputShape $_outputShape $_inputType $_outputType');
+      // print('$_inputShape $_outputShape $_inputType $_outputType');
 
       _outputBuffer = TensorBuffer.createFixedSize(_outputShape, _outputType);
       _probabilityProcessor =
@@ -345,7 +362,7 @@ class _DoodlePageState extends State<DoodlePage> {
         TensorLabel.fromList(labels, _probabilityProcessor.process(out))
             .getMapWithFloatValue();
 
-    print(labeledProb);
+    // print(labeledProb);
     // final pred = getTopProbability(labeledProb);
     final pred = getTopProbabilityUnique(labeledProb, preds);
     preds.add(pred.key);
@@ -408,6 +425,21 @@ class _DoodlePageState extends State<DoodlePage> {
           akeyword: pred.label.toString(),
           astrokes: strokes,
           atimetaken: timeTaken));
+
+      // RenderBox box3 =
+      //     containerKey.currentContext!.findRenderObject() as RenderBox;
+      // Offset position = box3.localToGlobal(Offset.zero);
+      // final dxFromLeft = trueContainerPos.dx;
+      // print(dxFromLeft);
+
+      for (List s in strokes) {
+        for (List ss in s) {
+          Offset p = ss[0];
+          Offset p2 =
+              Offset(p.dx - trueContainerPos.dx, p.dy - trueContainerPos.dy);
+          ss[0] = p2;
+        }
+      }
       Navigator.pop(context, [true, strokes, guessedKeywords]);
     }
     setState(() {});
@@ -418,13 +450,20 @@ class _DoodlePageState extends State<DoodlePage> {
     final box = context.findRenderObject() as RenderBox;
     final point = box.globalToLocal(details.globalPosition);
     // print(point);
-
+    RenderBox box2 =
+        containerKey.currentContext!.findRenderObject() as RenderBox;
+    Offset containerPos = box2.localToGlobal(Offset.zero);
+    trueContainerPos = containerPos;
+    // print(containerPos);
+    // // print(point - containerPos);
+    // final point2 = point - containerPos;
     setState(() {
       // dl.addFirstPoint(point);
       stroke = [];
       String t = (double.tryParse(globals.timerTime.toString())! - _start)
           .toStringAsFixed(1);
-      stroke.add([point, t]);
+      List p = [point, t];
+      stroke.add(p);
       strokes.add(stroke);
     });
   }
@@ -437,7 +476,7 @@ class _DoodlePageState extends State<DoodlePage> {
         containerKey.currentContext!.findRenderObject() as RenderBox;
     Offset containerPos =
         box2.localToGlobal(Offset.zero); //this is global position
-
+    // final point2 = point - containerPos;
     setState(() {
       // dl.addPoint(point);
       if (point.dx < containerPos.dx + imSize + (imPadding * 2) &&
@@ -473,10 +512,6 @@ class _DoodlePageState extends State<DoodlePage> {
   }
 
   Future<List?> processCanvasPoints(List<List<List<dynamic>>> strokes) async {
-    RenderBox box =
-        repaintBoundaryKey.currentContext!.findRenderObject() as RenderBox;
-    Offset position = box.localToGlobal(Offset.zero);
-    final dxFromLeft = position.dx;
     // final dyFromTop = position.dy;
     // RenderBox boxRowText =
     //     rowTextKey.currentContext!.findRenderObject() as RenderBox;
@@ -503,12 +538,12 @@ class _DoodlePageState extends State<DoodlePage> {
           Offset p =
               Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
           // allPaths.moveTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
-          allPaths.moveTo(p.dx - dxFromLeft, p.dy);
+          allPaths.moveTo(p.dx, p.dy);
         } else {
           Offset p =
               Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
           // allPaths.lineTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
-          allPaths.lineTo(p.dx - dxFromLeft, p.dy);
+          allPaths.lineTo(p.dx, p.dy);
         }
       }
     }

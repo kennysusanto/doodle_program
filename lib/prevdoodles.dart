@@ -79,47 +79,51 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
         // body list view
         body: Container(
           margin: const EdgeInsets.all(8),
-          child: StaggeredGridView.countBuilder(
-              crossAxisCount: 4,
-              itemCount: _doodleMaster.length,
-              itemBuilder: (context, i) {
-                Map<String, dynamic> match = _doodleMaster[i];
-                return Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(globals.borderRad),
-                        side: BorderSide(color: globals.themeColor)),
-                    color: globals.themeColor,
-                    child: InkWell(
-                        splashColor: globals.themeColorDarker,
-                        borderRadius: BorderRadius.circular(globals.borderRad),
-                        onTap: () {
-                          // ScaffoldMessenger.of(context)
-                          //     .showSnackBar(const SnackBar(
-                          //   content: Text(''),
-                          //   duration: Duration(milliseconds: 100),
-                          // ));
-                          Navigator.of(context).push(
-                              DoodleReplayRoute(doodles: match['doodles']));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              Text(match['user_email']),
-                              Text(match['datetime']),
-                              // Text(match['doodles'].length.toString()),
-                              Column(
-                                children: List.generate(match['doodles'].length,
-                                    (index) {
-                                  var child = match['doodles'][index];
-                                  return Text('${child['keyword']}');
-                                }),
-                              )
-                            ],
-                          ),
-                        )));
-              },
-              staggeredTileBuilder: (i) => const StaggeredTile.fit(1)),
+          child: _doodleMaster.isEmpty
+              ? const CircularProgressIndicator()
+              : StaggeredGridView.countBuilder(
+                  crossAxisCount: 4,
+                  itemCount: _doodleMaster.length,
+                  itemBuilder: (context, i) {
+                    Map<String, dynamic> match = _doodleMaster[i];
+                    return Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(globals.borderRad),
+                            side: BorderSide(color: globals.themeColor)),
+                        color: globals.themeColor,
+                        child: InkWell(
+                            splashColor: globals.themeColorDarker,
+                            borderRadius:
+                                BorderRadius.circular(globals.borderRad),
+                            onTap: () {
+                              // ScaffoldMessenger.of(context)
+                              //     .showSnackBar(const SnackBar(
+                              //   content: Text(''),
+                              //   duration: Duration(milliseconds: 100),
+                              // ));
+                              Navigator.of(context).push(
+                                  DoodleReplayRoute(doodles: match['doodles']));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                children: [
+                                  Text(match['user_email']),
+                                  Text(match['datetime']),
+                                  // Text(match['doodles'].length.toString()),
+                                  Column(
+                                    children: List.generate(
+                                        match['doodles'].length, (index) {
+                                      var child = match['doodles'][index];
+                                      return Text('${child['keyword']}');
+                                    }),
+                                  )
+                                ],
+                              ),
+                            )));
+                  },
+                  staggeredTileBuilder: (i) => const StaggeredTile.fit(1)),
         ));
   }
 }

@@ -5,16 +5,23 @@ import 'package:doodle/globals.dart' as globals;
 class AnimatedPainter extends CustomPainter {
   final Animation<double> animation;
   final List<List<dynamic>> points;
+  final GlobalKey apKey;
 
-  AnimatedPainter({required this.animation, required this.points})
-      : super(repaint: animation);
+  AnimatedPainter({
+    required this.animation,
+    required this.points,
+    required this.apKey,
+  }) : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
     // print(animation.value * 20);
     // _animation.value has a value between 0.0 and 1.0
     // use this to draw the first X% of the path
+    // canvas.drawRect(Rect.fromPoints(Offset(0, 0), Offset(10, 10)),
+    //     Paint()..style = PaintingStyle.stroke);
     Path path = Path();
+
     if (points.isEmpty) return;
     // print(animation.value * 20);
     double tt = animation.value * globals.timerTime;
@@ -26,7 +33,14 @@ class AnimatedPainter extends CustomPainter {
       List stroke = points[i];
       for (int j = 0; j < stroke.length; j++) {
         List offsetandtime = stroke[j];
-        Offset p = offsetandtime[0];
+        Offset p2 = offsetandtime[0];
+        RenderBox box = apKey.currentContext!.findRenderObject() as RenderBox;
+        Offset position = box.localToGlobal(Offset.zero);
+        // print(position);
+        final dxFromLeft = position.dx;
+        // print('${p2.dx + dxFromLeft} ${p2.dx}');
+        // Offset p = Offset(p2.dx + dxFromLeft, p2.dy);
+        Offset p = Offset(p2.dx, p2.dy);
         double t = offsetandtime[1];
         if (j == 0) {
           subPath.moveTo(p.dx, p.dy);
@@ -40,7 +54,7 @@ class AnimatedPainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = Colors.orange
+        ..color = globals.themeColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4.0,
     );
@@ -63,10 +77,13 @@ class DoodleReplayPage extends StatefulWidget {
 class _DoodleReplayPageState extends State<DoodleReplayPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  String timeHolder = '0';
+  String timeHolder = '0.0';
   List kws = [];
   List gkwsAllDoodles = [];
   List gkwsStrings = [];
+  GlobalKey drawContainerKey = GlobalKey();
+  List animatedPainters = [];
+  List apKeys = [];
 
   @override
   void initState() {
@@ -85,6 +102,7 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
               gkwsStrings[i] = kw;
             } else {
               gkwsStrings[i] = '$kw (${t}s)';
+              break;
             }
           }
         }
@@ -99,6 +117,23 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
       });
     });
     appendGKWs();
+    initAnimatedPainters();
+  }
+
+  void initAnimatedPainters() async {
+    for (int i = 0; i < widget.doodles.length; i++) {
+      Map<String, dynamic> doodle = widget.doodles[i];
+      GlobalKey gk = GlobalKey();
+      apKeys.add(gk);
+
+      AnimatedPainter ap = AnimatedPainter(
+          animation: _controller,
+          points: getDoodleOffsetPoints(
+              doodle['strokes'], 140, 140, doodle['guessed_keywords']),
+          apKey: apKeys[i]);
+      animatedPainters.add(ap);
+    }
+    // print('animated painters initialized');
   }
 
   void appendGKWs() {
@@ -126,6 +161,10 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
 
   List<List<dynamic>> getDoodleOffsetPoints(
       List strokes, int w, int h, List guessedKws) {
+    // RenderBox box3 =
+    //     drawContainerKey.currentContext!.findRenderObject() as RenderBox;
+    // Offset position = box3.localToGlobal(Offset.zero);
+    // final dxFromLeft = position.dx;
     List<List<dynamic>> res = [];
     for (int i = 0; i < strokes.length; i++) {
       List stroke = strokes[i];
@@ -138,6 +177,9 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
         x = xp;
         double yp = y * h / 280;
         y = yp;
+        // kurangin padding canvas di doodle.dart kyknya
+        // x -= 40;
+        // y -= 30;
         Offset p = Offset(x, y);
         List offsetandtime = [p, t];
         singleStroke.add(offsetandtime);
@@ -167,52 +209,58 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
         child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: widget.doodles.length,
-            itemBuilder: (context, i) => Card(
-                  margin: const EdgeInsets.only(right: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(globals.borderRad),
-                      side: BorderSide(color: globals.themeColor)),
-                  color: globals.themeColor,
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    width: 320,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Keyword: ${widget.doodles[i]['keyword']}'),
-                        Text(widget.doodles[i]['guessed'] == 'true'
-                            ? 'Guessed: true'
-                            : 'Guessed: false'),
-                        // Text('Strokes: ${widget.doodles[i]['strokes'].toString()}'),
-                        CustomPaint(
-                          foregroundPainter: AnimatedPainter(
-                            animation: _controller,
-                            points: getDoodleOffsetPoints(
-                                widget.doodles[i]['strokes'],
-                                140,
-                                140,
-                                widget.doodles[i]['guessed_keywords']),
-                          ),
-                          child: Container(
-                            color: globals.bgColor,
-                            width: 140,
-                            height: 140,
-                          ),
+            itemBuilder: (context, i) {
+              return Card(
+                margin: const EdgeInsets.only(right: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(globals.borderRad),
+                    side: BorderSide(color: globals.themeColor)),
+                color: globals.themeColor,
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  width: 220,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Keyword: ${widget.doodles[i]['keyword']}'),
+                      Text(widget.doodles[i]['guessed'] == 'true'
+                          ? 'Guessed: true'
+                          : 'Guessed: false'),
+                      // Text('Strokes: ${widget.doodles[i]['strokes'].toString()}'),
+                      CustomPaint(
+                        foregroundPainter: animatedPainters.isEmpty
+                            ? null
+                            : animatedPainters[i],
+                        // AnimatedPainter(
+                        //   animation: _controller,
+                        //   points: getDoodleOffsetPoints(
+                        //       widget.doodles[i]['strokes'],
+                        //       140,
+                        //       140,
+                        //       widget.doodles[i]['guessed_keywords']),
+                        // ),
+                        child: Container(
+                          key: apKeys.isEmpty ? null : apKeys[i],
+                          color: globals.bgColor,
+                          width: 140,
+                          height: 140,
                         ),
-                        // RepaintBoundary(
-                        //   child: Container(
-                        //     color: globals.bgColor,
-                        //     width: 140,
-                        //     height: 140,
-                        //   ),
-                        // )
-                        // Text(getTimes(widget.doodles[i]['strokes']))
-                        Text(gkwsStrings[i])
-                      ],
-                    ),
+                      ),
+                      // RepaintBoundary(
+                      //   child: Container(
+                      //     color: globals.bgColor,
+                      //     width: 140,
+                      //     height: 140,
+                      //   ),
+                      // )
+                      // Text(getTimes(widget.doodles[i]['strokes']))
+                      Text(gkwsStrings[i])
+                    ],
                   ),
-                )),
+                ),
+              );
+            }),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _startAnimation,
