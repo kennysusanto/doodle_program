@@ -139,7 +139,8 @@ class _DoodlePageState extends State<DoodlePage> {
             }
           }
 
-          Navigator.pop(context, [false, strokes, guessedKeywords]);
+          Navigator.pop(
+              context, [false, strokes, guessedKeywords, globals.timerTime]);
         } else {
           setState(() {
             _start -= double.tryParse(
@@ -440,7 +441,8 @@ class _DoodlePageState extends State<DoodlePage> {
           ss[0] = p2;
         }
       }
-      Navigator.pop(context, [true, strokes, guessedKeywords]);
+      Navigator.pop(
+          context, [true, strokes, guessedKeywords, globals.timerTime]);
     }
     setState(() {});
   }
@@ -535,19 +537,18 @@ class _DoodlePageState extends State<DoodlePage> {
         Offset strokeOffset = strokeSingle[0];
         double timeStamp = double.parse(strokeSingle[1]);
         if (j == 0) {
-          Offset p =
-              Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
+          Offset p = Offset(strokeOffset.dx - trueContainerPos.dx,
+              strokeOffset.dy - trueContainerPos.dy);
           // allPaths.moveTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
           allPaths.moveTo(p.dx, p.dy);
         } else {
-          Offset p =
-              Offset(strokeOffset.dx, strokeOffset.dy - kCanvasInnerOffset);
+          Offset p = Offset(strokeOffset.dx - trueContainerPos.dx,
+              strokeOffset.dy - trueContainerPos.dy);
           // allPaths.lineTo(p.dx - dxFromLeft, p.dy - boxRowTextHeight);
           allPaths.lineTo(p.dx, p.dy);
         }
       }
     }
-
     canvas.drawRect(
         Rect.fromPoints(
           Offset(0.0, 0.0),

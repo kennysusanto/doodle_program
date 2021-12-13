@@ -44,6 +44,8 @@ class _KeywordsPageState extends State<KeywordsPage> {
               crossAxisCount: 4,
               children: List.generate(_keywords.length, (index) {
                 return Card(
+                  margin: const EdgeInsets.all(8),
+                  elevation: 5,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(globals.borderRad),
                       side: BorderSide(color: globals.themeColor)),

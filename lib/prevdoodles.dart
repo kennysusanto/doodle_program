@@ -21,6 +21,7 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
   late FirebaseDatabase database;
   String _content = '';
   List _doodleMaster = [];
+  bool finishedInit = false;
 
   @override
   void initState() {
@@ -58,12 +59,14 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
         String datetime = d.child('datetime').value.toString();
         String userEmail = d.child('user_email').value.toString();
         String doodles = d.child('doodles').value.toString();
+        String timerTime = d.child('timer_time').value.toString();
         Map<String, dynamic> j = jsonDecode(
-            '{"user_email": "$userEmail", "datetime": "$datetime", "doodles": $doodles}');
+            '{"user_email": "$userEmail", "datetime": "$datetime", "timer_time": "$timerTime", "doodles": $doodles}');
         // var json = jsonDecode(d.value.toString());
         _doodleMaster.add(j);
       }
     });
+    finishedInit = true;
     // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     //     content: Text('Data fetched: ${_doodleMaster.length.toString()}'),
     //     duration: const Duration(milliseconds: 100)));
@@ -78,52 +81,60 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
         backgroundColor: globals.bgColor,
         // body list view
         body: Container(
-          margin: const EdgeInsets.all(8),
-          child: _doodleMaster.isEmpty
-              ? const CircularProgressIndicator()
-              : StaggeredGridView.countBuilder(
-                  crossAxisCount: 4,
-                  itemCount: _doodleMaster.length,
-                  itemBuilder: (context, i) {
-                    Map<String, dynamic> match = _doodleMaster[i];
-                    return Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(globals.borderRad),
-                            side: BorderSide(color: globals.themeColor)),
-                        color: globals.themeColor,
-                        child: InkWell(
-                            splashColor: globals.themeColorDarker,
-                            borderRadius:
-                                BorderRadius.circular(globals.borderRad),
-                            onTap: () {
-                              // ScaffoldMessenger.of(context)
-                              //     .showSnackBar(const SnackBar(
-                              //   content: Text(''),
-                              //   duration: Duration(milliseconds: 100),
-                              // ));
-                              Navigator.of(context).push(
-                                  DoodleReplayRoute(doodles: match['doodles']));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                children: [
-                                  Text(match['user_email']),
-                                  Text(match['datetime']),
-                                  // Text(match['doodles'].length.toString()),
-                                  Column(
-                                    children: List.generate(
-                                        match['doodles'].length, (index) {
-                                      var child = match['doodles'][index];
-                                      return Text('${child['keyword']}');
-                                    }),
-                                  )
-                                ],
-                              ),
-                            )));
-                  },
-                  staggeredTileBuilder: (i) => const StaggeredTile.fit(1)),
-        ));
+            margin: const EdgeInsets.all(8),
+            child: finishedInit
+                ? _doodleMaster.isEmpty
+                    ? const Text('Nothing here...')
+                    : StaggeredGridView.countBuilder(
+                        crossAxisCount: 4,
+                        itemCount: _doodleMaster.length,
+                        itemBuilder: (context, i) {
+                          Map<String, dynamic> match = _doodleMaster[i];
+                          return Card(
+                              elevation: 5,
+                              margin: const EdgeInsets.all(8),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(globals.borderRad),
+                                  side: BorderSide(color: globals.themeColor)),
+                              color: globals.themeColor,
+                              child: InkWell(
+                                  splashColor: globals.themeColorDarker,
+                                  borderRadius:
+                                      BorderRadius.circular(globals.borderRad),
+                                  onTap: () {
+                                    // ScaffoldMessenger.of(context)
+                                    //     .showSnackBar(const SnackBar(
+                                    //   content: Text(''),
+                                    //   duration: Duration(milliseconds: 100),
+                                    // ));
+                                    Navigator.of(context).push(
+                                        DoodleReplayRoute(
+                                            doodles: match['doodles'],
+                                            timerTime: int.parse(
+                                                match['timer_time'])));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Column(
+                                      children: [
+                                        Text('User: ${match['user_email']}'),
+                                        Text('Date Time: ${match['datetime']}'),
+                                        Text('Timer: ${match['timer_time']}s'),
+                                        const Text('Keywords:'),
+                                        // Text(match['doodles'].length.toString()),
+                                        Column(
+                                          children: List.generate(
+                                              match['doodles'].length, (index) {
+                                            var child = match['doodles'][index];
+                                            return Text('${child['keyword']}');
+                                          }),
+                                        )
+                                      ],
+                                    ),
+                                  )));
+                        },
+                        staggeredTileBuilder: (i) => const StaggeredTile.fit(1))
+                : const CircularProgressIndicator()));
   }
 }

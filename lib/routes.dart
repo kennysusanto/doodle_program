@@ -118,16 +118,18 @@ class PreviousDoodlesRoute extends CupertinoPageRoute {
 
 class DoodleReplayRoute extends CupertinoPageRoute {
   List<dynamic> doodles;
-  DoodleReplayRoute({required this.doodles})
+  int timerTime;
+  DoodleReplayRoute({required this.doodles, required this.timerTime})
       : super(
             builder: (BuildContext context) =>
-                DoodleReplayPage(doodles: doodles));
+                DoodleReplayPage(doodles: doodles, timerTime: timerTime));
 
   // OPTIONAL IF YOU WISH TO HAVE SOME EXTRA ANIMATION WHILE ROUTING
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
     return FadeTransition(
-        opacity: animation, child: DoodleReplayPage(doodles: doodles));
+        opacity: animation,
+        child: DoodleReplayPage(doodles: doodles, timerTime: timerTime));
   }
 }

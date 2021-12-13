@@ -6,12 +6,14 @@ class AnimatedPainter extends CustomPainter {
   final Animation<double> animation;
   final List<List<dynamic>> points;
   final GlobalKey apKey;
+  final int timerTime;
 
-  AnimatedPainter({
-    required this.animation,
-    required this.points,
-    required this.apKey,
-  }) : super(repaint: animation);
+  AnimatedPainter(
+      {required this.animation,
+      required this.points,
+      required this.apKey,
+      required this.timerTime})
+      : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -24,7 +26,7 @@ class AnimatedPainter extends CustomPainter {
 
     if (points.isEmpty) return;
     // print(animation.value * 20);
-    double tt = animation.value * globals.timerTime;
+    double tt = animation.value * timerTime;
     double tts = double.parse(tt.toStringAsFixed(1));
     // Offset origin = points[0][0];
     // path.moveTo(origin.dx, origin.dy);
@@ -54,7 +56,7 @@ class AnimatedPainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = globals.themeColor
+        ..color = Colors.black
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4.0,
     );
@@ -68,7 +70,10 @@ class AnimatedPainter extends CustomPainter {
 
 class DoodleReplayPage extends StatefulWidget {
   final List<dynamic> doodles;
-  const DoodleReplayPage({Key? key, required this.doodles}) : super(key: key);
+  final int timerTime;
+  const DoodleReplayPage(
+      {Key? key, required this.doodles, required this.timerTime})
+      : super(key: key);
 
   @override
   _DoodleReplayPageState createState() => _DoodleReplayPageState();
@@ -107,13 +112,13 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
           }
         }
       }
-      if (timeHolder == globals.timerTime.toString()) {
+      if (timeHolder == widget.timerTime.toString()) {
         for (String st in gkwsStrings) {
           st = '';
         }
       }
       setState(() {
-        timeHolder = (_controller.value * globals.timerTime).toStringAsFixed(1);
+        timeHolder = (_controller.value * widget.timerTime).toStringAsFixed(1);
       });
     });
     appendGKWs();
@@ -130,7 +135,8 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
           animation: _controller,
           points: getDoodleOffsetPoints(
               doodle['strokes'], 140, 140, doodle['guessed_keywords']),
-          apKey: apKeys[i]);
+          apKey: apKeys[i],
+          timerTime: widget.timerTime);
       animatedPainters.add(ap);
     }
     // print('animated painters initialized');
@@ -155,7 +161,7 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
     _controller.stop();
     _controller.reset();
     _controller.repeat(
-      period: Duration(seconds: globals.timerTime),
+      period: Duration(seconds: widget.timerTime),
     );
   }
 
@@ -211,7 +217,8 @@ class _DoodleReplayPageState extends State<DoodleReplayPage>
             itemCount: widget.doodles.length,
             itemBuilder: (context, i) {
               return Card(
-                margin: const EdgeInsets.only(right: 16),
+                elevation: 5,
+                margin: const EdgeInsets.all(8),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(globals.borderRad),
                     side: BorderSide(color: globals.themeColor)),

@@ -30,6 +30,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
   List labels = [];
   List labels2 = [];
   List allStrokes = [];
+  List timerTimes = [];
   late FirebaseDatabase database;
 
   void send() async {
@@ -89,6 +90,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         //   allStrokes.add(res);
         // }
         keywords.add([res[0], kw]);
+        timerTimes.add(res[3]);
         guessedKeywordsList.add(res[2]);
         allStrokes.add(res);
       }
@@ -142,7 +144,8 @@ class _DoodleHandlerState extends State<DoodleHandler> {
           newStroke.set({
             "user_email": widget.userEmail,
             "datetime": DateTime.now().toString(),
-            "doodles": whiteStrokes.toString()
+            "doodles": whiteStrokes.toString(),
+            "timer_time": timerTimes[0].toString()
           });
 
           Directory? docsDir = await pp.getExternalStorageDirectory();
