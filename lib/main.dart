@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -102,7 +101,8 @@ class _MainMenuState extends State<MainMenu> {
     if (!exists) {
       await Firebase.initializeApp(
           name: firebaseAppName,
-          options: DefaultFirebaseOptions.currentPlatform);
+          // options: DefaultFirebaseOptions.currentPlatform);
+          options: globals.firebaseConfig);
     } else {
       Firebase.app(firebaseAppName);
     }

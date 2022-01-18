@@ -33,6 +33,7 @@ class DoodlePage extends StatefulWidget {
 class _DoodlePageState extends State<DoodlePage> {
   List<List<List<dynamic>>> strokes = [];
   List<List<dynamic>> stroke = [];
+  List<dynamic> edittedStrokes = [];
   List<int> imageDataInt = List.generate(28 * 28, (_) => 0);
   Uint8List imageDataUInt8 = Uint8List(28 * 28);
   int c = 0;
@@ -139,8 +140,13 @@ class _DoodlePageState extends State<DoodlePage> {
             }
           }
 
-          Navigator.pop(
-              context, [false, strokes, guessedKeywords, globals.timerTime]);
+          Navigator.pop(context, [
+            false,
+            strokes,
+            guessedKeywords,
+            globals.timerTime,
+            edittedStrokes
+          ]);
         } else {
           setState(() {
             _start -= double.tryParse(
@@ -441,8 +447,8 @@ class _DoodlePageState extends State<DoodlePage> {
           ss[0] = p2;
         }
       }
-      Navigator.pop(
-          context, [true, strokes, guessedKeywords, globals.timerTime]);
+      Navigator.pop(context,
+          [true, strokes, guessedKeywords, globals.timerTime, edittedStrokes]);
     }
     setState(() {});
   }
@@ -641,6 +647,17 @@ class _DoodlePageState extends State<DoodlePage> {
       // 255 10 10 10 = 4278848010
 
     }
+
+    // ini untuk data yg udh di edit buat simpen ke database
+    edittedStrokes = [];
+    for (var j = 0; j < edittedResizedImage.height; j++) {
+      for (var i = 0; i < edittedResizedImage.width; i++) {
+        // print(i.toString() + " " + j.toString());
+        var pixelVal = u32tou8(edittedResizedImage.getPixel(i, j));
+        edittedStrokes.add(pixelVal[1]);
+      }
+    }
+
     Directory? docsDir = await pp.getExternalStorageDirectory();
     // File('${docsDir!.path}/a.png').writeAsBytes(im.encodePng(resizedImage));
     // File('${docsDir!.path}/a.txt').writeAsString(

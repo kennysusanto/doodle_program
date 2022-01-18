@@ -1,50 +1,43 @@
 {
   "project_info": {
-    "project_number": "386362481596",
-    "firebase_url": "https://doodle-cbdc8-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "doodle-cbdc8",
-    "storage_bucket": "doodle-cbdc8.appspot.com"
+    "project_number": "658846392651",
+    "firebase_url": "https://doodle-d5abb-default-rtdb.firebaseio.com",
+    "project_id": "doodle-d5abb",
+    "storage_bucket": "doodle-d5abb.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:386362481596:android:c08b1dc8e9556d6c4069b9",
+        "mobilesdk_app_id": "1:658846392651:android:e95c335dee36eb4f8cc8ce",
         "android_client_info": {
           "package_name": "com.example.doodle"
         }
       },
       "oauth_client": [
         {
-          "client_id": "386362481596-12de1ar4fl48jfr8gts9e8oq3pfpulc8.apps.googleusercontent.com",
+          "client_id": "658846392651-k5n2dii4ilq9jdssk1ippfah8m4r857i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.doodle",
-            "certificate_hash": "ac09ffdb7a78fb037f745b29f46e992350bbde3a"
+            "certificate_hash": "cc0de1db1096b3d9473600b634ea8ef9def18f84"
           }
         },
         {
-          "client_id": "386362481596-ireradb4l0505njb6beknj9o317qcoc2.apps.googleusercontent.com",
+          "client_id": "658846392651-u7fqb013eodbifbkjtidq382nldv800r.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCv-OSQPO4ci0_gsyw1_v0BRoZkvLcWWDk"
+          "current_key": "AIzaSyAwR5poy7cDJPn-74IL6RqZzMsZXToQW9A"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "386362481596-ireradb4l0505njb6beknj9o317qcoc2.apps.googleusercontent.com",
+              "client_id": "658846392651-u7fqb013eodbifbkjtidq382nldv800r.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "386362481596-913rbvel79ho9hmi3rlr8rlv1fguhfci.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "sd"
-              }
             }
           ]
         }

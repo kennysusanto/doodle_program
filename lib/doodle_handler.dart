@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:doodle/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
@@ -31,6 +30,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
   List labels2 = [];
   List allStrokes = [];
   List timerTimes = [];
+  List edittedImages = [];
   late FirebaseDatabase database;
 
   void send() async {
@@ -48,7 +48,8 @@ class _DoodleHandlerState extends State<DoodleHandler> {
       if (!exists) {
         FirebaseApp fbapp = await Firebase.initializeApp(
             name: firebaseAppName,
-            options: DefaultFirebaseOptions.currentPlatform);
+            // options: DefaultFirebaseOptions.currentPlatform);
+            options: globals.firebaseConfig);
         // print('$b ${b.name} ${b.options}');
         database = FirebaseDatabase.instanceFor(app: fbapp);
       } else {
@@ -92,6 +93,7 @@ class _DoodleHandlerState extends State<DoodleHandler> {
         keywords.add([res[0], kw]);
         timerTimes.add(res[3]);
         guessedKeywordsList.add(res[2]);
+        edittedImages.add(res[4]);
         allStrokes.add(res);
       }
       // print('corrects: ${corrects.length} - wrongs: ${wrongs.length}');
@@ -129,8 +131,9 @@ class _DoodleHandlerState extends State<DoodleHandler> {
           String kw = strokeDetails[1];
           bool guessed = strokeDetails[0];
           List guessedKeywords = guessedKeywordsList[i];
+          List edittedPixels = edittedImages[i];
           String jsonStr =
-              '{"keyword": "${kw.trim().replaceAll(RegExp('\r'), '')}", "guessed": "$guessed", "guessed_keywords": $guessedKeywords, "strokes": $stroke}';
+              '{"keyword": "${kw.trim().replaceAll(RegExp('\r'), '')}", "guessed": "$guessed", "guessed_keywords": $guessedKeywords, "strokes": $stroke, "edittedPixels": $edittedPixels}';
           // whiteStrokes.add([px, py, pt]);
           whiteStrokes.add(jsonStr);
         }

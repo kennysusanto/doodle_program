@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:doodle/globals.dart' as globals;
 import 'dart:convert';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'firebase_options.dart';
 
 class PreviousDoodlesPage extends StatefulWidget {
   final String userEmail;
@@ -40,7 +39,8 @@ class _PreviousDoodlesPageState extends State<PreviousDoodlesPage> {
     if (!exists) {
       FirebaseApp fbapp = await Firebase.initializeApp(
           name: firebaseAppName,
-          options: DefaultFirebaseOptions.currentPlatform);
+          // options: DefaultFirebaseOptions.currentPlatform);
+          options: globals.firebaseConfig);
       // print('$b ${b.name} ${b.options}');
       database = FirebaseDatabase.instanceFor(app: fbapp);
     } else {
