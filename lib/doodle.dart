@@ -52,12 +52,11 @@ class _DoodlePageState extends State<DoodlePage> {
 
   Image imGen = const Image(
       image: NetworkImage(
-    'https://pixabay.com/images/id-49520/',
+    'https://images.app.goo.gl/KKUFuNfVdAvKjspW8',
   ));
-  Image imGen2 = const Image(
-      image: NetworkImage(
-    'https://pixabay.com/images/id-49520/',
-  ));
+  Image imGen2 = const Image(image: NetworkImage(
+      // 'https://pixabay.com/images/id-49520/',
+      'https://images.app.goo.gl/KKUFuNfVdAvKjspW8'));
 
   bool imgAva = false;
   late Timer _timer;
@@ -107,11 +106,13 @@ class _DoodlePageState extends State<DoodlePage> {
     if (imgAva) {
       return media;
     } else {
-      return CachedNetworkImage(
-        imageUrl: "https://i.imgur.com/0fNdo9h.jpeg",
-        placeholder: (context, url) => new CircularProgressIndicator(),
-        errorWidget: (context, url, error) => new Icon(Icons.error),
-      );
+      return Image.asset('assets/pgEIGAo.gif');
+      // return CachedNetworkImage(
+      //   // imageUrl: "https://i.imgur.com/0fNdo9h.jpeg",
+      //   imageUrl: 'https://imgur.com/pgEIGAo.gif',
+      //   placeholder: (context, url) => new CircularProgressIndicator(),
+      //   errorWidget: (context, url, error) => new Icon(Icons.error),
+      // );
     }
   }
 
