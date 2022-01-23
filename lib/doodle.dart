@@ -76,7 +76,7 @@ class _DoodlePageState extends State<DoodlePage> {
 
   final String _labelsFileName = 'assets/labels2.txt';
 
-  final int _labelsLength = globals.timerTime;
+  final int _labelsLength = 150;
 
   late var _probabilityProcessor;
 
@@ -201,6 +201,8 @@ class _DoodlePageState extends State<DoodlePage> {
       print('Labels loaded successfully');
     } else {
       print('Unable to load labels');
+      print(labels.length);
+      print(_labelsLength);
     }
   }
 
@@ -351,7 +353,9 @@ class _DoodlePageState extends State<DoodlePage> {
     // File('${docsDir.path}/d.txt')
     //     .writeAsString(interpreter.getInputTensors()[0].data.toString());
 
-    TensorBuffer out = TensorBuffer.createFixedSize([1, 20], TfLiteType.uint8);
+    // TensorBuffer out = TensorBuffer.createFixedSize([1, 20], TfLiteType.uint8); // model 20
+    TensorBuffer out = TensorBuffer.createFixedSize(
+        [1, _labelsLength], TfLiteType.uint8); // model 150
 
     interpreter.run(manadd1, out.getBuffer());
 

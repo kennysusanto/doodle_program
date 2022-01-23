@@ -1,6 +1,9 @@
 The Mona Lisa
 aircraft carrier
 alarm clock
+The Mona Lisa
+aircraft carrier
+alarm clock
 ant
 animal migration
 airplane
@@ -18,3 +21,130 @@ basket
 baseball bat
 bandage
 barn
+basketball
+baseball
+bathtub
+bat
+beach
+bed
+bee
+belt
+bear
+beard
+banana
+book
+binoculars
+bench
+bicycle
+birthday cake
+blackberry
+blueberry
+bird
+boomerang
+bottlecap
+bracelet
+bowtie
+broccoli
+bread
+bridge
+broom
+bucket
+bus
+brain
+butterfly
+bulldozer
+bush
+cactus
+cake
+camera
+calculator
+camel
+camouflage
+campfire
+cannon
+canoe
+cat
+candle
+car
+castle
+ceiling fan
+carrot
+calendar
+cell phone
+compass
+cello
+chandelier
+circle
+clarinet
+cloud
+church
+coffee cup
+computer
+clock
+cookie
+chair
+crab
+cruise ship
+cow
+crocodile
+couch
+crown
+diamond
+crayon
+cup
+dolphin
+door
+dragon
+dresser
+donut
+dog
+drill
+dishwasher
+drums
+diving board
+duck
+ear
+eraser
+elephant
+eye
+envelope
+dumbbell
+elbow
+face
+fan
+feather
+eyeglasses
+fire hydrant
+fish
+fence
+flamingo
+fireplace
+finger
+firetruck
+flip flops
+garden hose
+flashlight
+fork
+flying saucer
+floor lamp
+frying pan
+flower
+frog
+garden
+foot
+giraffe
+grass
+guitar
+hamburger
+grapes
+hammer
+golf club
+goatee
+hedgehog
+headphones
+helmet
+hexagon
+helicopter
+hockey stick
+hat
+harp
